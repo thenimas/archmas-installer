@@ -6,8 +6,8 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 echo "Verifying required packages..."
-pacman -Syu
-pacman -S fdisk bc rsync btrfs-progs tar wget lshw smartmontools cryptsetup arch-install-scripts dosfstools jq
+pacman -Sy
+pacman -S --needed util-linux bc rsync btrfs-progs tar wget lshw smartmontools cryptsetup arch-install-scripts dosfstools jq
 
 echo " "
 
@@ -271,7 +271,14 @@ EEOF
         if [ "$IS_HDD" == 0 ]; then
             crypttab_entry="$CRYPT_NAME UUID=$CRYPT_UUID none luks,discard"
         fi
+
+        echo "# <target name> <source device> <key file> <options>" > /etc/crypttab
+        echo "$crypttab_entry" | tr -d '\n'  >> /etc/crypttab
+        echo "" >> /etc/crypttab
     fi
 
     mkdir -p /target/boot
 fi
+
+echo ""
+echo "Stage 1 finished"

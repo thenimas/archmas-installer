@@ -1,0 +1,10 @@
+[Desktop Entry]
+Categories=System;Utility
+Comment=Updates software installed via Flatpak.
+Exec=/usr/bin/flatpak update -y
+GenericName=Software Updater
+Icon=flatpak
+Keywords=update;flatpak;
+Name=Flatpak Updater
+Terminal=false
+Type=Application

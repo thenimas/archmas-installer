@@ -12,7 +12,7 @@ echo " "
 mkdir -p /target/etc/default
 touch /target/etc/default/keyboard
 
-pacstrap -K /target base linux-lts linux-firmware efibootmgr sudo nano btrfs-progs wget dbus locales
+pacstrap -K /target base linux-lts linux-firmware efibootmgr sudo nano btrfs-progs wget dbus
 
 arch-chroot /target /bin/bash << EOT
 
@@ -75,6 +75,10 @@ grub-mkconfig -o /boot/grub/grub.cfg
 
 passwd -d root
 passwd -l root
+
+systemctl enable lightdm
+systemctl enable zram-generator
+systemctl enable fail2ban
 
 EOT
 

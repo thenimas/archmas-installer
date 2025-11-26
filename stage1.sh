@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 if [[ $EUID -ne 0 ]]; then
    echo "ERROR: This script must be run as root!"
@@ -30,12 +31,6 @@ until [ "$INSTALL_TYPE" -ge 1 ] && [ "$INSTALL_TYPE" -le 3 ]; do
     read -p "(1,2,3): " INSTALL_TYPE
 done
 
-echo " "
-
-read -p "Enter new username: " USER_NAME
-echo " "
-
-read -p "Enter new name for your PC (hostname): " HOST_NAME
 echo " "
 
 willWriteRandom="N"

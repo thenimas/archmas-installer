@@ -1,12 +1,1 @@
-gnome-icon-theme 3.12.0-9
-librewolf-bin 1:145.0.1_2-1
-nitrogen 1.6.1-6
-qdirstat-bin 1.9-1
-ttf-comic-neue 2.51-1
-ttf-courier-prime 1.203-5
-ttf-league-spartan 1:2.220-1
-ttf-symbola 14.00-2
-vscodium-bin 1.106.27818-2
-xcursor-breeze 1:6.4.3-1
-yay 12.5.2-2
-yay-debug 12.5.2-2
+gnome-icon-theme nitrogen qdirstat-bin ttf-comic-neue ttf-courier-prime 1.203-5 ttf-league-spartan ttf-symbola vscodium-bin xcursor-breeze

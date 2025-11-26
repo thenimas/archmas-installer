@@ -260,6 +260,9 @@ EEOF
     echo "UUID=$BOOT_UUID /boot ext4 nofail 0 2" >> /target/etc/fstab
     echo "UUID=$EFI_UUID /boot/efi vfat nofail 0 1" >> /target/etc/fstab
 
+    mkdir -p /target/etc/default
+    wget https://github.com/thenimas/archmas-installer/raw/dev/configs/grub -O /target/etc/default/grub
+
     if [ "$INSTALL_TYPE" == 1 ]; then
         touch /target/etc/crypttab
         crypttab_entry="$CRYPT_NAME UUID=$CRYPT_UUID none luks"
@@ -267,9 +270,11 @@ EEOF
             crypttab_entry="$CRYPT_NAME UUID=$CRYPT_UUID none luks,discard"
         fi
 
-        echo "# <target name> <source device> <key file> <options>" > /etc/crypttab
-        echo "$crypttab_entry" | tr -d '\n'  >> /etc/crypttab
-        echo "" >> /etc/crypttab
+        echo "# <target name> <source device> <key file> <options>" > /target/etc/crypttab
+        echo "$crypttab_entry" | tr -d '\n'  >> /target/etc/crypttab
+        echo "" >> /target/etc/crypttab
+
+        sed -i "s/quiet splash/quiet splash rd.luks.name=$CRYPT_UUID=$CRYPT_NAME" /target/etc/default/grub
     fi
 
     mkdir -p /target/boot

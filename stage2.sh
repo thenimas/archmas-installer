@@ -16,6 +16,8 @@ pacstrap -K /target base linux-lts linux-firmware efibootmgr sudo nano btrfs-pro
 
 arch-chroot /target /bin/bash << EOT
 
+crypttab_txt=$(cat /target/etc/crypttab)
+
 mount -a
 
 # adding data we specified
@@ -30,7 +32,6 @@ locale-gen
 export LC_CTYPE=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 
-wget https://github.com/thenimas/archmas-installer/raw/dev/configs/grub -O /etc/default/grub
 wget https://github.com/thenimas/archmas-installer/raw/dev/configs/keyboard -O /etc/default/keyboard
 wget https://github.com/thenimas/archmas-installer/raw/dev/configs/mirrorlist -O /etc/pacman.d/mirrorlist
 wget https://github.com/thenimas/archmas-installer/raw/dev/configs/locale.conf -O /etc/locale.conf
@@ -72,9 +73,11 @@ sed -i 's/HOOKS=(.*)/HOOKS=(base systemd autodetect microcode modconf kms keyboa
 
 echo "KEYMAP=us" > /etc/vconsole.conf
 
+echo "$crypttab_txt" > /etc/crypttab
+
 mkinitcpio -P
-grub-install --target=x86_64-efi
-grub-install --target=x86_64-efi --removable
+grub-install --target=x86_64-efi --modules="tpm luks"
+grub-install --target=x86_64-efi --modules="tpm luks" --removable
 grub-mkconfig -o /boot/grub/grub.cfg
 
 passwd -d root

@@ -1,1 +1,0 @@
-gnome-icon-theme nitrogen qdirstat-bin ttf-comic-neue ttf-courier-prime 1.203-5 ttf-league-spartan ttf-symbola vscodium-bin xcursor-breeze

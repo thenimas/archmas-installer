@@ -11,11 +11,11 @@ echo " "
 mkdir -p /target/etc/default
 touch /target/etc/default/keyboard
 
+echo "KEYMAP=us" > /target/etc/vconsole.conf
+
 pacstrap -K /target base linux-lts linux-firmware efibootmgr sudo nano btrfs-progs wget dbus
 
 arch-chroot /target /bin/bash << EOT
-
-crypttab_txt=$(cat /target/etc/crypttab)
 
 mount -a
 
@@ -42,17 +42,17 @@ wget https://raw.githubusercontent.com/thenimas/archmas-installer/dev/assets/gru
 
 pacman -Syu --noconfirm
 
-pacman -S --noconfirm accountsservice ark base-devel bc bluez cantarell-fonts dex dmenu dosfstools fail2ban fastfetch flatpak gamemode gdb git gnome-software gnome-themes-extra grub gvfs i3-wm i3blocks i3lock i3status ibus jdk-openjdk kate lightdm lightdm-gtk-greeter linux lshw lxappearance lxinput maim man-db network-manager-applet nodejs noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra pavucontrol pipewire pipewire-alsa pipewire-audio pipewire-jack pipewire-pulse playerctl plymouth python redshift rxvt-unicode sox syncthing systemsettings thunar thunar-archive-plugin thunar-media-tags-plugin thunar-shares-plugin timeshift ttf-inconsolata ttf-liberation ufw virt-manager vlc wget xclip xdg-desktop-portal xdotool zram-generator cryptsetup systemd-cryptsetup-generator
+pacman -S --noconfirm --needed accountsservice ark base-devel bc bluez cantarell-fonts dex dmenu dosfstools fail2ban fastfetch flatpak gamemode gdb git gnome-software gnome-themes-extra grub gvfs i3-wm i3blocks i3lock i3status ibus jdk-openjdk kate lightdm lightdm-gtk-greeter linux lshw lxappearance lxinput maim man-db network-manager-applet nodejs noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra pavucontrol pipewire pipewire-alsa pipewire-audio pipewire-jack pipewire-pulse playerctl plymouth python redshift rxvt-unicode sox syncthing systemsettings thunar thunar-archive-plugin thunar-media-tags-plugin thunar-shares-plugin timeshift ttf-inconsolata ttf-liberation ufw virt-manager vlc wget xclip xdg-desktop-portal xdotool zram-generator cryptsetup systemd-cryptsetup-generator
 
 cd ~
 
-git clone https://aur.archlinux.org/yay-bin.git
-cd yay-bin
-makepkg -si
+# git clone https://aur.archlinux.org/yay-bin.git
+# cd yay-bin
+# makepkg -si
 
-yes | lang=C yay -S gnome-icon-theme nitrogen qdirstat-bin ttf-comic-neue ttf-courier-prime 1.203-5 ttf-league-spartan ttf-symbola vscodium-bin xcursor-breeze
+# yes | lang=C yay -S gnome-icon-theme nitrogen qdirstat-bin ttf-comic-neue ttf-courier-prime 1.203-5 ttf-league-spartan ttf-symbola vscodium-bin xcursor-breeze
 
-yay -Y --gendb
+# yay -Y --gendb
 
 cd ~
 rm -rf ~/*
@@ -68,9 +68,7 @@ ufw enable
 
 echo "%wheel      ALL=(ALL:ALL) ALL" >> /etc/sudoers
 
-sed -i 's/HOOKS=(.*)/HOOKS=(base systemd autodetect microcode modconf kms keyboard keymap sd-console block filesystems fsck keymap sd-encrypt plymouth)/g' /etc/mkinitcpio.conf
-
-echo "KEYMAP=us" > /etc/vconsole.conf
+sed -i 's/HOOKS=(.*)/HOOKS=(base systemd autodetect microcode modconf kms keyboard keymap sd-vconsole block filesystems fsck keymap sd-encrypt plymouth)/g' /etc/mkinitcpio.conf
 
 mkinitcpio -P
 grub-install --target=x86_64-efi --modules="tpm luks"
@@ -81,7 +79,6 @@ passwd -d root
 passwd -l root
 
 systemctl enable lightdm
-systemctl enable zram-generator
 systemctl enable fail2ban
 
 EOT

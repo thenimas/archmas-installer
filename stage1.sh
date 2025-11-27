@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 if [[ $EUID -ne 0 ]]; then
    echo "ERROR: This script must be run as root!"
@@ -274,7 +273,7 @@ EEOF
         echo "$crypttab_entry" | tr -d '\n'  >> /target/etc/crypttab
         echo "" >> /target/etc/crypttab
 
-        sed -i "s/quiet splash/quiet splash rd.luks.name=$CRYPT_UUID=$CRYPT_NAME" /target/etc/default/grub
+        sed -i ' s/quiet splash/quiet splash rd.luks.name='"$CRYPT_UUID"'='"$CRYPT_NAME"'' /target/etc/default/grub
     fi
 
     mkdir -p /target/boot

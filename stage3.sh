@@ -9,7 +9,6 @@ read -p "Enter new username: " USER_NAME
 echo " "
 
 arch-chroot /target /bin/bash << EOT
-
 # make user
 useradd -m -s /bin/bash "$USER_NAME"
 usermod -aG wheel "$USER_NAME"
@@ -37,19 +36,20 @@ chown "$USER_NAME":"$USER_NAME" /home/"$USER_NAME" -R
 cd yay-bin
 runuser "$USER_NAME" -c 'makepkg' 
 pacman -U /home/"$USER_NAME"/yay-bin/*.pkg.tar.zst
-
 EOT
 
 arch-chroot /target /bin/bash << EOT
-
 echo "$USER_NAME ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 cd /home/"$USER_NAME"/yay-bin
 
-runuser "$USER_NAME" -c 'yay -Y --gendb'
-runuser "$USER_NAME" -c 'yay -S --noconfirm gnome-icon-theme nitrogen qdirstat-bin ttf-comic-neue ttf-courier-prime ttf-league-spartan ttf-symbola vscodium-bin xcursor-breeze'
+runuser "$USER_NAME" -c 'yes | yay -Y --gendb'
+runuser "$USER_NAME" -c 'yes | yay -S --noconfirm gnome-icon-theme qdirstat-bin ttf-comic-neue ttf-courier-prime ttf-league-spartan ttf-symbola vscodium-bin xcursor-breeze'
 
 rm -r /home/"$USER_NAME"/yay-bin/
-sed '/NOPASSWD/d' /etc/sudoers
+sed -i '/NOPASSWD/d' /etc/sudoers
+EOT
 
+arch-chroot /target /bin/bash << EOT
+runuser "$USER_NAME" -c 'yes | yay -Scc'
 EOT

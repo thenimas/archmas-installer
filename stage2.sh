@@ -72,8 +72,6 @@ sed -i 's/HOOKS=(.*)/HOOKS=(base systemd autodetect microcode modconf kms keyboa
 
 echo "KEYMAP=us" > /etc/vconsole.conf
 
-echo "$crypttab_txt" > /etc/crypttab
-
 mkinitcpio -P
 grub-install --target=x86_64-efi --modules="tpm luks"
 grub-install --target=x86_64-efi --modules="tpm luks" --removable

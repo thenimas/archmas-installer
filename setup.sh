@@ -329,6 +329,7 @@ wget https://github.com/thenimas/archmas-installer/raw/main/configs/zram-generat
 wget https://github.com/thenimas/archmas-installer/raw/main/configs/timeshift.json -O /etc/timeshift/timeshift.json
 
 sed -i 's/ROOT_UUID/'"$ROOT_UUID"'/g' /etc/timeshift/timeshift.json
+
 sed -i 's/CRYPT_UUID/'"$CRYPT_UUID"'/g' /etc/timeshift/timeshift.json
 
 echo "%wheel      ALL=(ALL:ALL) ALL" >> /etc/sudoers

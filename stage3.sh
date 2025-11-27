@@ -12,7 +12,7 @@ arch-chroot /target /bin/bash << EOT
 
 # make user
 useradd -m -s /bin/bash "$USER_NAME"
-usermod -aG sudo "$USER_NAME"
+usermod -aG wheel "$USER_NAME"
 usermod -aG libvirt "$USER_NAME"
 
 wget https://github.com/thenimas/archmas-installer/raw/dev/user.tar -O user.tar
@@ -32,9 +32,9 @@ passwd -e "$USER_NAME"
 
 cd /home/"$USER_NAME"/
 
-sudo -i -u "$USER_NAME" git clone https://aur.archlinux.org/yay-bin.git; cd yay-bin; makepkg -si
-sudo -i -u "$USER_NAME" yay -Y --gendb
-sudo -i -u "$USER_NAME" yes | lang=C yay -S gnome-icon-theme nitrogen qdirstat-bin ttf-comic-neue ttf-courier-prime 1.203-5 ttf-league-spartan ttf-symbola vscodium-bin xcursor-breeze
+runuser -u "$USER_NAME" git clone https://aur.archlinux.org/yay-bin.git; cd yay-bin; makepkg -si
+runuser -u "$USER_NAME" yay -Y --gendb
+runuser -u "$USER_NAME" yes | lang=C yay -S gnome-icon-theme nitrogen qdirstat-bin ttf-comic-neue ttf-courier-prime 1.203-5 ttf-league-spartan ttf-symbola vscodium-bin xcursor-breeze
 
 cd /
 rm -rf /home/"$USER_NAME"/yay/

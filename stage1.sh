@@ -33,18 +33,19 @@ done
 echo " "
 
 willWriteRandom="N"
+encryptPass=""
 
 if [ "$INSTALL_TYPE" == 1 ]; then
-    echo "IMPORTANT WARNING:"
+    echo "WARNING: If you lose this password, there is 100% NO way to recover it and you will lose access to all of your data."
     echo " "
-    echo "After the partitioning is complete, you will be prompted to set up an encryption password. If you lose this password, there is 100% NO way to recover it and you will lose access to all of your data."
-    echo " "
-    confirm=" "
-    read -p "Type YES in all capital letters to continue: " confirm
-    if [ ! $confirm = "YES" ]; then
-        echo "Aborting."
-        exit 0
-    fi
+    while true; do
+        read -s -p "Please enter encryption passphrase: " encryptPass
+        echo
+        read -s -p "Confirm passphrase: " encryptPass2
+        echo
+        [ "$encryptPass" = "$encryptPass2" ] && break
+        echo "Passphrases do not match"
+    done
     echo " "
 fi 
 
@@ -154,12 +155,12 @@ EEOF
     ROOT_UUID=""
 
     if [ "$INSTALL_TYPE" == 1 ]; then
-        until cryptsetup luksFormat -q --verify-passphrase --type luks2 /dev/$ROOT_PART; do
-            echo "Try again"
-        done
-        until cryptsetup open /dev/$ROOT_PART "$ROOT_PART"_crypt; do
-            echo "Try again"
-        done
+        cryptsetup luksFormat -q --verify-passphrase --type luks2 /dev/$ROOT_PART <<EEOF
+$encryptPass
+$encryptPass
+EEOF
+
+        echo $encryptPass | cryptsetup open /dev/$ROOT_PART "$ROOT_PART"_crypt
 
         CRYPT_NAME="$ROOT_PART"_crypt;
         CRYPT_UUID="$(lsblk -no UUID /dev/$ROOT_PART)"
@@ -273,7 +274,7 @@ EEOF
         echo "$crypttab_entry" | tr -d '\n'  >> /target/etc/crypttab
         echo "" >> /target/etc/crypttab
 
-        sed -i ' s/quiet splash/quiet splash rd.luks.name='"$CRYPT_UUID"'='"$CRYPT_NAME"'/g' /target/etc/default/grub
+        sed -i 's/quiet splash/quiet splash rd.luks.name='"$CRYPT_UUID"'='"$CRYPT_NAME"'/g' /target/etc/default/grub
     fi
 
     mkdir -p /target/boot

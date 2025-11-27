@@ -268,7 +268,7 @@ EEOF
     echo "UUID=$EFI_UUID /boot/efi vfat nofail 0 1" >> /target/etc/fstab
 
     mkdir -p /target/etc/default
-    wget https://github.com/thenimas/archmas-installer/raw/dev/configs/grub -O /target/etc/default/grub
+    wget https://github.com/thenimas/archmas-installer/raw/main/configs/grub -O /target/etc/default/grub
 
     if [ "$INSTALL_TYPE" == 1 ]; then
         touch /target/etc/crypttab
@@ -312,14 +312,14 @@ locale-gen
 export LC_CTYPE=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 
-wget https://github.com/thenimas/archmas-installer/raw/dev/configs/keyboard -O /etc/default/keyboard
-wget https://github.com/thenimas/archmas-installer/raw/dev/configs/mirrorlist -O /etc/pacman.d/mirrorlist
-wget https://github.com/thenimas/archmas-installer/raw/dev/configs/locale.conf -O /etc/locale.conf
-wget https://github.com/thenimas/archmas-installer/raw/dev/configs/zram-generator.conf -O /etc/systemd/zram-generator.conf
+wget https://github.com/thenimas/archmas-installer/raw/main/configs/keyboard -O /etc/default/keyboard
+wget https://github.com/thenimas/archmas-installer/raw/main/configs/mirrorlist -O /etc/pacman.d/mirrorlist
+wget https://github.com/thenimas/archmas-installer/raw/main/configs/locale.conf -O /etc/locale.conf
+wget https://github.com/thenimas/archmas-installer/raw/main/configs/zram-generator.conf -O /etc/systemd/zram-generator.conf
 
 mkdir -p /boot/grub
-wget https://raw.githubusercontent.com/thenimas/archmas-installer/dev/assets/grub-full.png -O /boot/grub/grub-full.png
-wget https://raw.githubusercontent.com/thenimas/archmas-installer/dev/assets/grub-wide.png -O /boot/grub/grub-wide.png
+wget https://raw.githubusercontent.com/thenimas/archmas-installer/main/assets/grub-full.png -O /boot/grub/grub-full.png
+wget https://raw.githubusercontent.com/thenimas/archmas-installer/main/assets/grub-wide.png -O /boot/grub/grub-wide.png
 
 pacman -Syu --noconfirm
 
@@ -362,7 +362,7 @@ useradd -m -s /bin/bash "$USER_NAME"
 usermod -aG wheel "$USER_NAME"
 usermod -aG libvirt "$USER_NAME"
 
-wget https://github.com/thenimas/archmas-installer/raw/dev/user.tar -O user.tar
+wget https://github.com/thenimas/archmas-installer/raw/main/user.tar -O user.tar
 tar -xf user.tar
 rsync -a ./user/* /home/"$USER_NAME"/
 rsync -a ./user/.* /home/"$USER_NAME"/

@@ -316,7 +316,6 @@ export LC_ALL=en_CA.UTF-8
 wget https://github.com/thenimas/archmas-installer/raw/main/configs/keyboard -O /etc/default/keyboard
 wget https://github.com/thenimas/archmas-installer/raw/main/configs/mirrorlist -O /etc/pacman.d/mirrorlist
 wget https://github.com/thenimas/archmas-installer/raw/main/configs/locale.conf -O /etc/locale.conf
-wget https://github.com/thenimas/archmas-installer/raw/main/configs/zram-generator.conf -O /etc/systemd/zram-generator.conf
 
 mkdir -p /boot/grub
 wget https://raw.githubusercontent.com/thenimas/archmas-installer/main/assets/grub-full.png -O /boot/grub/grub-full.png
@@ -326,13 +325,11 @@ pacman -Syu --noconfirm
 
 pacman -S --noconfirm --needed accountsservice ark base-devel bc bluez cantarell-fonts dex dmenu dosfstools fail2ban fastfetch flatpak gamemode gdb git gnome-software gnome-themes-extra grub gvfs i3-wm i3blocks i3lock i3status ibus jdk-openjdk kate lightdm lightdm-gtk-greeter linux lshw lxappearance lxinput maim man-db network-manager-applet nodejs noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra pavucontrol pipewire pipewire-alsa pipewire-audio pipewire-jack pipewire-pulse playerctl plymouth python redshift rxvt-unicode sox syncthing systemsettings thunar thunar-archive-plugin thunar-media-tags-plugin thunar-shares-plugin timeshift ttf-inconsolata ttf-liberation ufw virt-manager vlc wget xclip xdg-desktop-portal xdotool zram-generator cryptsetup xwallpaper
 
-# add firewall rules
-ufw default deny incoming
-ufw default allow outgoing
-ufw allow 80
-ufw allow 443
-ufw allow syncthing
-ufw enable
+wget https://github.com/thenimas/archmas-installer/raw/main/configs/zram-generator.conf -O /etc/systemd/zram-generator.conf
+wget https://github.com/thenimas/archmas-installer/raw/main/configs/timeshift.json -O /etc/timeshift/timeshift.json
+
+sed -i 's/ROOT_UUID/'"$ROOT_UUID"'/g' /etc/timeshift/timeshift.json
+sed -i 's/CRYPT_UUID/'"$CRYPT_UUID"'/g' /etc/timeshift/timeshift.json
 
 echo "%wheel      ALL=(ALL:ALL) ALL" >> /etc/sudoers
 
@@ -349,6 +346,16 @@ passwd -l root
 systemctl enable lightdm
 systemctl enable fail2ban
 systemctl enable NetworkManager
+systemctl enable cronie
+systemctl enable ufw
+
+# add firewall rules
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow 80
+ufw allow 443
+ufw allow syncthing
+ufw enable
 
 chattr +C /var/lib/libvirt/images
 virsh net-autostart default
@@ -397,6 +404,11 @@ EOT
 
 arch-chroot /target /bin/bash << EOT
 runuser "$USER_NAME" -c 'yes | yay -Scc'
+EOT
+
+arch-chroot /target /bin/bash << EOT
+yes | yay -Ycc
+timeshift --check
 EOT
 
 sed -i '/NOPASSWD/d' /target/etc/sudoers

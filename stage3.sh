@@ -44,8 +44,9 @@ runuser "$USER_NAME" -c 'yes | yay -Y --gendb'
 runuser "$USER_NAME" -c 'yes | yay -S --noconfirm gnome-icon-theme qdirstat-bin ttf-comic-neue ttf-courier-prime ttf-league-spartan ttf-symbola vscodium-bin xcursor-breeze'
 
 rm -r /home/"$USER_NAME"/yay-bin/
-sed -i '/NOPASSWD/d' /etc/sudoers
 EOT
+
+sed -i '/NOPASSWD/d' /target/etc/sudoers
 
 arch-chroot /target /bin/bash << EOT
 runuser "$USER_NAME" -c 'yes | yay -Scc'

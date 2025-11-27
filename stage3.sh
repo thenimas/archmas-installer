@@ -32,9 +32,9 @@ passwd -e "$USER_NAME"
 
 cd /home/"$USER_NAME"/
 
-runuser -u "$USER_NAME" git clone https://aur.archlinux.org/yay-bin.git; cd yay-bin; makepkg -si
-runuser -u "$USER_NAME" yay -Y --gendb
-runuser -u "$USER_NAME" yes | lang=C yay -S gnome-icon-theme nitrogen qdirstat-bin ttf-comic-neue ttf-courier-prime 1.203-5 ttf-league-spartan ttf-symbola vscodium-bin xcursor-breeze
+runuser -u "$USER_NAME" -c 'git clone https://aur.archlinux.org/yay-bin.git; cd yay-bin; makepkg -si'
+runuser -u "$USER_NAME" -c 'yay -Y --gendb'
+runuser -u "$USER_NAME" -c 'yes | lang=C yay -S gnome-icon-theme nitrogen qdirstat-bin ttf-comic-neue ttf-courier-prime 1.203-5 ttf-league-spartan ttf-symbola vscodium-bin xcursor-breeze'
 
 cd /
 rm -rf /home/"$USER_NAME"/yay/

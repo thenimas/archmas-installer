@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Startup Sound
+Comment=Plays a startup noise.
+Exec=play ~/Desktop/startup.mp3
+Type=Application
+Terminal=false
+Hidden=false

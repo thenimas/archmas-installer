@@ -32,7 +32,7 @@ chown "$USER_NAME":"$USER_NAME" /home/"$USER_NAME" -R
 
 cd yay-bin
 runuser "$USER_NAME" -c 'makepkg' 
-pacman -U /home/"$USER_NAME"/yay-bin/*.pkg.tar.zst
+pacman -U --noconfirm /home/"$USER_NAME"/yay-bin/*.pkg.tar.zst
 EOT
 
 arch-chroot /target /bin/bash << EOT
@@ -40,14 +40,14 @@ echo "$USER_NAME ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 cd /home/"$USER_NAME"/yay-bin
 
-runuser "$USER_NAME" -c 'yes | yay -Y --gendb'
-runuser "$USER_NAME" -c 'yes | yay -S --noconfirm gnome-icon-theme qdirstat-bin ttf-comic-neue ttf-courier-prime ttf-league-spartan ttf-symbola vscodium-bin xcursor-breeze'
+runuser "$USER_NAME" -c 'yay -Y --gendb'
+runuser "$USER_NAME" -c 'yay -S --noconfirm gnome-icon-theme qdirstat-bin ttf-comic-neue ttf-courier-prime ttf-league-spartan ttf-symbola vscodium-bin xcursor-breeze'
 
 rm -r /home/"$USER_NAME"/yay-bin/
 EOT
 
-sed -i '/NOPASSWD/d' /target/etc/sudoers
-
 arch-chroot /target /bin/bash << EOT
 runuser "$USER_NAME" -c 'yes | yay -Scc'
 EOT
+
+sed -i '/NOPASSWD/d' /target/etc/sudoers

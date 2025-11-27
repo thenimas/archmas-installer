@@ -239,8 +239,7 @@ bindsym XF86AudioPause exec --no-startup-id playerctl pause
 # bindsym XF86MonBrightnessDown exec --no-startup-id brightnessctl s 10%-
 
 ## Show background
-## exec --no-startup-id nitrogen --restore
-exec --no-startup-id xwallpaper --zoom ~/Desktop/arch_ice.jpg
+exec --no-startup-id xwallpaper --zoom ~/Desktop/arch_ice.png
 
 ## Xresources
 exec --no-startup-id xrdb -merge ~/.Xresources

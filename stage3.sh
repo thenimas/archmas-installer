@@ -25,18 +25,31 @@ rm user.tar
 sed -i 's/USER_NAME/$USER_NAME/g' /home/"$USER_NAME"/.config/nitrogen/nitrogen.cfg
 sed -i 's/USER_NAME/$USER_NAME/g' /home/"$USER_NAME"/.config/nitrogen/bg-saved.cfg
 
-chown "$USER_NAME":"$USER_NAME" /home/"$USER_NAME" -R
-
 passwd -d "$USER_NAME"
 passwd -e "$USER_NAME"
 
 cd /home/"$USER_NAME"/
 
-runuser -u "$USER_NAME" -c 'git clone https://aur.archlinux.org/yay-bin.git; cd yay-bin; makepkg -si'
-runuser -u "$USER_NAME" -c 'yay -Y --gendb'
-runuser -u "$USER_NAME" -c 'yes | lang=C yay -S gnome-icon-theme nitrogen qdirstat-bin ttf-comic-neue ttf-courier-prime 1.203-5 ttf-league-spartan ttf-symbola vscodium-bin xcursor-breeze'
+git clone https://aur.archlinux.org/yay-bin.git
 
-cd /
-rm -rf /home/"$USER_NAME"/yay/
+chown "$USER_NAME":"$USER_NAME" /home/"$USER_NAME" -R
+
+cd yay-bin
+runuser "$USER_NAME" -c 'makepkg' 
+pacman -U /home/"$USER_NAME"/yay-bin/*.pkg.tar.zst
+
+EOT
+
+arch-chroot /target /bin/bash << EOT
+
+echo "$USER_NAME ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+cd /home/"$USER_NAME"/yay-bin
+
+runuser "$USER_NAME" -c 'yay -Y --gendb'
+runuser "$USER_NAME" -c 'yay -S --noconfirm gnome-icon-theme nitrogen qdirstat-bin ttf-comic-neue ttf-courier-prime ttf-league-spartan ttf-symbola vscodium-bin xcursor-breeze'
+
+rm -r /home/"$USER_NAME"/yay-bin/
+sed '/NOPASSWD/d' /etc/sudoers
 
 EOT

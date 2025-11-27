@@ -9,7 +9,7 @@ https://wiki.archlinux.org/title/Netboot
 - Automated installation with encryption support
 - i3 Window Manager preconfigured with my preferred bindings and visual configuration
 - Preinstalled utilites for coding, file syncing and snapshotting.
-- AUR integration with yay. (Flatpak is supported as wel..)
+- AUR integration with yay. (Flatpak is supported as well.)
 
 ## Minimum Requirements
 - 64-bit Intel or AMD CPU

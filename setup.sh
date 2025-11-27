@@ -289,9 +289,6 @@ fi
 
 ## STAGE 2
 
-read -p "Enter new name for your PC (hostname): " HOST_NAME
-echo " "
-
 mkdir -p /target/etc/default
 touch /target/etc/default/keyboard
 

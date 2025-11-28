@@ -294,7 +294,7 @@ touch /target/etc/default/keyboard
 
 echo "KEYMAP=us" > /target/etc/vconsole.conf
 
-pacstrap -K /target base linux-lts linux-firmware efibootmgr sudo nano btrfs-progs wget dbus
+pacstrap -K /target base linux-lts linux-firmware efibootmgr sudo nano btrfs-progs wget dbus zstd
 
 arch-chroot /target /bin/bash << EOT
 

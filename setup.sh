@@ -383,6 +383,9 @@ passwd -e "$USER_NAME"
 
 cd /home/"$USER_NAME"/
 
+runuser "$USER_NAME" -c 'systemctl --user enable syncthing'
+runuser "$USER_NAME" -c 'systemctl --user enable redshift-gtk'
+
 git clone https://aur.archlinux.org/yay-bin.git
 
 chown "$USER_NAME":"$USER_NAME" /home/"$USER_NAME" -R

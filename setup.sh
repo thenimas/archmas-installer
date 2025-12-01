@@ -401,7 +401,7 @@ echo "$USER_NAME ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 cd /home/"$USER_NAME"/yay-bin
 
 runuser "$USER_NAME" -c 'yay -Y --gendb'
-runuser "$USER_NAME" -c 'yay -S --noconfirm gnome-icon-theme qdirstat-bin ttf-comic-neue ttf-courier-prime ttf-league-spartan ttf-symbola vscodium-bin xcursor-breeze'
+runuser "$USER_NAME" -c 'yay -S --noconfirm gnome-icon-theme qdirstat vscodium-bin xcursor-breeze'
 
 rm -r /home/"$USER_NAME"/yay-bin/
 EOT

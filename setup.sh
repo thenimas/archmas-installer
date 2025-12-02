@@ -386,24 +386,24 @@ cd /home/"$USER_NAME"/
 runuser "$USER_NAME" -c 'systemctl --user enable syncthing'
 runuser "$USER_NAME" -c 'systemctl --user enable redshift-gtk'
 
-git clone https://aur.archlinux.org/yay-bin.git
+git clone https://aur.archlinux.org/yay.git
 
 chown "$USER_NAME":"$USER_NAME" /home/"$USER_NAME" -R
 
-cd yay-bin
+cd yay
 runuser "$USER_NAME" -c 'makepkg' 
-pacman -U --noconfirm /home/"$USER_NAME"/yay-bin/*.pkg.tar.zst
+pacman -U --noconfirm /home/"$USER_NAME"/yay/*.pkg.tar.zst
 EOT
 
 arch-chroot /target /bin/bash << EOT
 echo "$USER_NAME ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
-cd /home/"$USER_NAME"/yay-bin
+cd /home/"$USER_NAME"/yay
 
 runuser "$USER_NAME" -c 'yay -Y --gendb'
 runuser "$USER_NAME" -c 'yay -S --noconfirm gnome-icon-theme qdirstat vscodium-bin xcursor-breeze'
 
-rm -r /home/"$USER_NAME"/yay-bin/
+rm -r /home/"$USER_NAME"/yay/
 EOT
 
 arch-chroot /target /bin/bash << EOT

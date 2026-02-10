@@ -28,6 +28,11 @@ INSTALL_TYPE="0"
 CRYPT_NAME=""
 crypttab_entry=""
 
+IS_LAPTOP=0
+if [ -d "/proc/acpi/button/lid" ]; then
+    IS_LAPTOP=1
+fi
+
 until [ "$INSTALL_TYPE" -ge 1 ] && [ "$INSTALL_TYPE" -le 3 ]; do
     read -p "(1,2,3): " INSTALL_TYPE
 done
@@ -115,6 +120,7 @@ else
     fi
 
     IS_HDD="$(cat /sys/block/$installDisk/queue/rotational)"
+
 
     echo "Beginning installation..."
 
@@ -321,7 +327,7 @@ export LC_ALL=en_CA.UTF-8
 
 wget https://github.com/thenimas/archmas-installer/raw/main/configs/keyboard -O /etc/default/keyboard
 wget https://github.com/thenimas/archmas-installer/raw/main/configs/mirrorlist -O /etc/pacman.d/mirrorlist
-wget https://github.com/thenimas/archmas-installer/raw/main/configs/locale.conf -O /etc/locale.conf
+wget https://github.com/thenimas/archmas-installer/raw/main/configs/ nf -O /etc/locale.conf
 
 mkdir -p /boot/grub
 wget https://raw.githubusercontent.com/thenimas/archmas-installer/main/assets/grub-full.png -O /boot/grub/grub-full.png
@@ -419,6 +425,19 @@ EOT
 arch-chroot /target /bin/bash << EOT
 runuser "$USER_NAME" -c 'yes | yay -Scc'
 EOT
+
+if [ "$IS_LAPTOP" == 1 ]; then
+    sed -i 's/# bindsym XF86MonBrightness/bindsym XF86MonBrightness/g' /home/"$USER_NAME"/.config/i3/config
+    sed -i 's/# order += "battery all"/order += "battery all"/g' /home/"$USER_NAME"/.config/i3/i3status.conf
+
+    arch-chroot /target /bin/bash << EOT
+    pacman -S bluez bluez-utils iw powertop wpa_supplicant
+    EOT
+
+    arch-chroot /target /bin/bash << EOT
+    runuser "$USER_NAME" -c 'yay -S --noconfirm batsignal'
+    EOT
+fi
 
 arch-chroot /target /bin/bash << EOT
 yes | yay -Ycc

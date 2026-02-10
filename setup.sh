@@ -293,7 +293,7 @@ EEOF
         echo "$crypttab_entry" | tr -d '\n'  >> /target/etc/crypttab
         echo "" >> /target/etc/crypttab
 
-        sed -i 's/quiet splash/quiet splash rd.luks.name='"$CRYPT_UUID"'='"$CRYPT_NAME"'/g' /target/etc/default/grub
+        sed -i 's/quiet splash/quiet splash rd.luks.name='$CRYPT_UUID'='$CRYPT_NAME'/g' /target/etc/default/grub
     fi
 
     mkdir -p /target/boot
@@ -431,7 +431,7 @@ if [ "$IS_LAPTOP" == 1 ]; then
     sed -i 's/# order += "battery all"/order += "battery all"/g' /home/"$USER_NAME"/.config/i3/i3status.conf
 
     arch-chroot /target /bin/bash << EOT
-    pacman -S bluez bluez-utils iw powertop wpa_supplicant
+    pacman -S bluez bluez-utils iw powertop wpa_supplicant brightnessctl
     EOT
 
     arch-chroot /target /bin/bash << EOT

@@ -431,12 +431,12 @@ if [ "$IS_LAPTOP" == 1 ]; then
     sed -i 's/# order += "battery all"/order += "battery all"/g' /home/"$USER_NAME"/.config/i3/i3status.conf
 
     arch-chroot /target /bin/bash << EOT
-    pacman -S bluez bluez-utils iw powertop wpa_supplicant brightnessctl
-    EOT
+pacman -S bluez bluez-utils iw powertop wpa_supplicant brightnessctl
+EOT
 
     arch-chroot /target /bin/bash << EOT
-    runuser "$USER_NAME" -c 'yay -S --noconfirm batsignal'
-    EOT
+runuser "$USER_NAME" -c 'yay -S --noconfirm batsignal'
+EOT
 fi
 
 arch-chroot /target /bin/bash << EOT

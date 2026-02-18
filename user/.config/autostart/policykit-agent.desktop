@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Policy Agent
+Comment=Policy kit
+Exec=/usr/bin/lxqt-policykit-agent
+StartupNotify=false
+Terminal=false
+Hidden=false

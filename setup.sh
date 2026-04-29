@@ -373,6 +373,8 @@ ufw allow syncthing
 ufw enable
 
 chattr +C /var/lib/libvirt/images
+sudo systemctl enable libvirtd.service
+sudo systemctl enable libvirtd.socket
 virsh net-autostart default
 
 rkhunter --propupd

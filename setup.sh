@@ -327,7 +327,7 @@ export LC_ALL=en_CA.UTF-8
 
 wget https://github.com/thenimas/archmas-installer/raw/main/configs/keyboard -O /etc/default/keyboard
 wget https://github.com/thenimas/archmas-installer/raw/main/configs/mirrorlist -O /etc/pacman.d/mirrorlist
-wget https://github.com/thenimas/archmas-installer/raw/main/configs/ nf -O /etc/locale.conf
+wget https://github.com/thenimas/archmas-installer/raw/main/configs/locale.conf -O /etc/locale.conf
 
 mkdir -p /boot/grub
 wget https://raw.githubusercontent.com/thenimas/archmas-installer/main/assets/grub-full.png -O /boot/grub/grub-full.png

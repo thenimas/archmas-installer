@@ -28,8 +28,9 @@ INSTALL_TYPE="0"
 CRYPT_NAME=""
 crypttab_entry=""
 
+CHASSIS="$(hostnamectl chassis)"
 IS_LAPTOP=0
-if [ -d "/proc/acpi/button/lid" ]; then
+if [[ "$CHASSIS" == "laptop" || "$CHASSIS" == "tablet" ]]; then
     IS_LAPTOP=1
 fi
 

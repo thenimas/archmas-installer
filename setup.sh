@@ -28,6 +28,12 @@ INSTALL_TYPE="0"
 CRYPT_NAME=""
 crypttab_entry=""
 
+CHASSIS="$(hostnamectl chassis)"
+IS_LAPTOP=0
+if [[ "$CHASSIS" == "laptop" || "$CHASSIS" == "tablet" ]]; then
+    IS_LAPTOP=1
+fi
+
 until [ "$INSTALL_TYPE" -ge 1 ] && [ "$INSTALL_TYPE" -le 3 ]; do
     read -p "(1,2,3): " INSTALL_TYPE
 done
@@ -116,6 +122,7 @@ else
 
     IS_HDD="$(cat /sys/block/$installDisk/queue/rotational)"
 
+
     echo "Beginning installation..."
 
     if [ "$willWriteRandom" == "Y" ]; then
@@ -136,10 +143,16 @@ n
 
 
 +1G
+t
+2
+142
 n
 
 
 
+t
+3
+23
 w
 EEOF
 
@@ -281,7 +294,7 @@ EEOF
         echo "$crypttab_entry" | tr -d '\n'  >> /target/etc/crypttab
         echo "" >> /target/etc/crypttab
 
-        sed -i 's/quiet splash/quiet splash rd.luks.name='"$CRYPT_UUID"'='"$CRYPT_NAME"'/g' /target/etc/default/grub
+        sed -i 's/quiet splash/quiet splash rd.luks.name='$CRYPT_UUID'='$CRYPT_NAME'/g' /target/etc/default/grub
     fi
 
     mkdir -p /target/boot
@@ -294,9 +307,11 @@ touch /target/etc/default/keyboard
 
 echo "KEYMAP=us" > /target/etc/vconsole.conf
 
-pacstrap -K /target base linux-lts linux-firmware efibootmgr sudo nano btrfs-progs wget dbus
+pacstrap -K /target base linux-lts linux-firmware efibootmgr sudo nano btrfs-progs wget dbus zstd rsync
 
 arch-chroot /target /bin/bash << EOT
+
+sleep 0.5
 
 mount -a
 
@@ -306,16 +321,16 @@ echo "$HOST_NAME" > /etc/hostname
 hwclock --systohc
 
 # adding locale
+echo "en_CA.UTF-8 UTF-8" >> /etc/locale.gen
 echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
 locale-gen
 
-export LC_CTYPE=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
+export LC_CTYPE=en_CA.UTF-8
+export LC_ALL=en_CA.UTF-8
 
 wget https://github.com/thenimas/archmas-installer/raw/main/configs/keyboard -O /etc/default/keyboard
 wget https://github.com/thenimas/archmas-installer/raw/main/configs/mirrorlist -O /etc/pacman.d/mirrorlist
 wget https://github.com/thenimas/archmas-installer/raw/main/configs/locale.conf -O /etc/locale.conf
-wget https://github.com/thenimas/archmas-installer/raw/main/configs/zram-generator.conf -O /etc/systemd/zram-generator.conf
 
 mkdir -p /boot/grub
 wget https://raw.githubusercontent.com/thenimas/archmas-installer/main/assets/grub-full.png -O /boot/grub/grub-full.png
@@ -323,15 +338,14 @@ wget https://raw.githubusercontent.com/thenimas/archmas-installer/main/assets/gr
 
 pacman -Syu --noconfirm
 
-pacman -S --noconfirm --needed accountsservice ark base-devel bc bluez cantarell-fonts dex dmenu dosfstools fail2ban fastfetch flatpak gamemode gdb git gnome-software gnome-themes-extra grub gvfs i3-wm i3blocks i3lock i3status ibus jdk-openjdk kate lightdm lightdm-gtk-greeter linux lshw lxappearance lxinput maim man-db network-manager-applet nodejs noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra pavucontrol pipewire pipewire-alsa pipewire-audio pipewire-jack pipewire-pulse playerctl plymouth python redshift rxvt-unicode sox syncthing systemsettings thunar thunar-archive-plugin thunar-media-tags-plugin thunar-shares-plugin timeshift ttf-inconsolata ttf-liberation ufw virt-manager vlc wget xclip xdg-desktop-portal xdotool zram-generator cryptsetup xwallpaper
+pacman -S --noconfirm --needed accountsservice ark base-devel bc bluez cantarell-fonts dex dmenu dosfstools fail2ban fastfetch flatpak gamemode gdb git gnome-software gnome-themes-extra grub gvfs i3-wm i3blocks i3lock i3status ibus jdk-openjdk kate lightdm lightdm-gtk-greeter linux lshw lxappearance lxinput maim man-db network-manager-applet nodejs pavucontrol pipewire pipewire-alsa pipewire-audio pipewire-jack pipewire-pulse playerctl plymouth python redshift rxvt-unicode sox syncthing systemsettings thunar thunar-archive-plugin thunar-media-tags-plugin thunar-shares-plugin timeshift ttf-inconsolata ttf-liberation ufw virt-manager vlc wget xclip xdg-desktop-portal xdotool cryptsetup xwallpaper geeqie ntp lynis rkhunter lxqt-policykit ffmpegthumbnailer system-config-printer avahi linux-headers linux-lts-headers noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra
 
-# add firewall rules
-ufw default deny incoming
-ufw default allow outgoing
-ufw allow 80
-ufw allow 443
-ufw allow syncthing
-ufw enable
+wget https://github.com/thenimas/archmas-installer/raw/main/configs/timeshift.json -O /etc/timeshift/timeshift.json
+wget https://github.com/thenimas/thebian-installer/raw/main/configs/jail.local -O /etc/fail2ban/jail.local
+
+sed -i 's/ROOT_UUID/'"$ROOT_UUID"'/g' /etc/timeshift/timeshift.json
+
+sed -i 's/CRYPT_UUID/'"$CRYPT_UUID"'/g' /etc/timeshift/timeshift.json
 
 echo "%wheel      ALL=(ALL:ALL) ALL" >> /etc/sudoers
 
@@ -348,9 +362,25 @@ passwd -l root
 systemctl enable lightdm
 systemctl enable fail2ban
 systemctl enable NetworkManager
+systemctl enable cronie
+systemctl enable ufw
+systemctl enable ntpd
+systemctl enable avahi-daemon
+
+# add firewall rules
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow 80
+ufw allow 443
+ufw allow syncthing
+ufw enable
 
 chattr +C /var/lib/libvirt/images
+sudo systemctl enable libvirtd.service
+sudo systemctl enable libvirtd.socket
 virsh net-autostart default
+
+rkhunter --propupd
 
 EOT
 
@@ -374,6 +404,9 @@ passwd -e "$USER_NAME"
 
 cd /home/"$USER_NAME"/
 
+runuser "$USER_NAME" -c 'systemctl --user enable syncthing'
+runuser "$USER_NAME" -c 'systemctl --user enable redshift-gtk'
+
 git clone https://aur.archlinux.org/yay-bin.git
 
 chown "$USER_NAME":"$USER_NAME" /home/"$USER_NAME" -R
@@ -389,13 +422,31 @@ echo "$USER_NAME ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 cd /home/"$USER_NAME"/yay-bin
 
 runuser "$USER_NAME" -c 'yay -Y --gendb'
-runuser "$USER_NAME" -c 'yay -S --noconfirm gnome-icon-theme qdirstat-bin ttf-comic-neue ttf-courier-prime ttf-league-spartan ttf-symbola vscodium-bin xcursor-breeze'
+runuser "$USER_NAME" -c 'yay -S --noconfirm gnome-icon-theme qdirstat vscodium-bin xcursor-breeze'
 
 rm -r /home/"$USER_NAME"/yay-bin/
 EOT
 
 arch-chroot /target /bin/bash << EOT
 runuser "$USER_NAME" -c 'yes | yay -Scc'
+EOT
+
+if [ "$IS_LAPTOP" == 1 ]; then
+    sed -i 's/# bindsym XF86MonBrightness/bindsym XF86MonBrightness/g' /target/home/"$USER_NAME"/.config/i3/config
+    sed -i 's/# order += "battery all"/order += "battery all"/g' /target/home/"$USER_NAME"/.config/i3/i3status.conf
+
+    arch-chroot /target /bin/bash << EOT
+pacman -S --noconfirm bluez bluez-utils iw powertop wpa_supplicant brightnessctl
+EOT
+
+    arch-chroot /target /bin/bash << EOT
+runuser "$USER_NAME" -c 'yay -S --noconfirm batsignal'
+EOT
+fi
+
+arch-chroot /target /bin/bash << EOT
+yes | yay -Ycc
+timeshift --check
 EOT
 
 sed -i '/NOPASSWD/d' /target/etc/sudoers

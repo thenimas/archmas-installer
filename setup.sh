@@ -331,9 +331,7 @@ pacman -S --noconfirm --needed accountsservice ark base-devel bc bluez cantarell
 wget https://github.com/thenimas/archmas-installer/raw/main/configs/timeshift.json -O /etc/timeshift/timeshift.json
 wget https://github.com/thenimas/thebian-installer/raw/main/configs/jail.local -O /etc/fail2ban/jail.local
 
-sed -i 's/ROOT_UUID/'"$ROOT_UUID"'/g' /etc/timeshift/timeshift.json
 
-sed -i 's/CRYPT_UUID/'"$CRYPT_UUID"'/g' /etc/timeshift/timeshift.json
 
 echo "%wheel      ALL=(ALL:ALL) ALL" >> /etc/sudoers
 
@@ -372,6 +370,11 @@ rkhunter --propupd
 
 EOT
 
+
+sed -i 's/ROOT_UUID/'$ROOT_UUID'/g' /target/etc/timeshift/timeshift.json
+
+sed -i 's/CRYPT_UUID/'$CRYPT_UUID'/g' /target/etc/timeshift/timeshift.json
+
 if [ "$INSTALL_TYPE" == 1 ]; then
     crypttab_entry="$CRYPT_NAME UUID=$CRYPT_UUID none luks"
     if [ "$IS_HDD" == 0 ]; then
@@ -383,6 +386,11 @@ if [ "$INSTALL_TYPE" == 1 ]; then
     echo "" >> /target/etc/crypttab
 
     sed -i 's/quiet splash/quiet splash rd.luks.name='$CRYPT_UUID'='$CRYPT_NAME'/g' /target/etc/default/grub
+
+    arch-croot /target /bin/bash << EOT
+grub-mkconfig -o /boot/grub/grub.cfg
+mkinitcpio -P
+EOT
 fi
 
 ## STAGE 3

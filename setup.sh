@@ -283,19 +283,7 @@ EEOF
     mkdir -p /target/etc/default
     wget https://github.com/thenimas/archmas-installer/raw/main/configs/grub -O /target/etc/default/grub
 
-    if [ "$INSTALL_TYPE" == 1 ]; then
-        touch /target/etc/crypttab
-        crypttab_entry="$CRYPT_NAME UUID=$CRYPT_UUID none luks"
-        if [ "$IS_HDD" == 0 ]; then
-            crypttab_entry="$CRYPT_NAME UUID=$CRYPT_UUID none luks,discard"
-        fi
-
-        echo "# <target name> <source device> <key file> <options>" > /target/etc/crypttab
-        echo "$crypttab_entry" | tr -d '\n'  >> /target/etc/crypttab
-        echo "" >> /target/etc/crypttab
-
-        sed -i 's/quiet splash/quiet splash rd.luks.name='$CRYPT_UUID'='$CRYPT_NAME'/g' /target/etc/default/grub
-    fi
+    
 
     mkdir -p /target/boot
 fi
@@ -383,6 +371,19 @@ virsh net-autostart default
 rkhunter --propupd
 
 EOT
+
+if [ "$INSTALL_TYPE" == 1 ]; then
+    crypttab_entry="$CRYPT_NAME UUID=$CRYPT_UUID none luks"
+    if [ "$IS_HDD" == 0 ]; then
+        crypttab_entry="$CRYPT_NAME UUID=$CRYPT_UUID none luks,discard"
+    fi
+
+    echo "# <target name> <source device> <key file> <options>" > /target/etc/crypttab
+    echo "$crypttab_entry" | tr -d '\n'  >> /target/etc/crypttab
+    echo "" >> /target/etc/crypttab
+
+    sed -i 's/quiet splash/quiet splash rd.luks.name='$CRYPT_UUID'='$CRYPT_NAME'/g' /target/etc/default/grub
+fi
 
 ## STAGE 3
 

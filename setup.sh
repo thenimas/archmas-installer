@@ -326,7 +326,7 @@ wget https://raw.githubusercontent.com/thenimas/archmas-installer/main/assets/gr
 
 pacman -Syu --noconfirm
 
-pacman -S --noconfirm --needed accountsservice ark base-devel bc bluez cantarell-fonts dex dmenu dosfstools fail2ban fastfetch flatpak gamemode gdb git gnome-software gnome-themes-extra grub gvfs i3-wm i3blocks i3lock i3status ibus jdk-openjdk kate lightdm lightdm-gtk-greeter linux lshw lxappearance lxinput maim man-db network-manager-applet nodejs pavucontrol pipewire pipewire-alsa pipewire-audio pipewire-jack pipewire-pulse playerctl plymouth python redshift rxvt-unicode sox syncthing systemsettings thunar thunar-archive-plugin thunar-media-tags-plugin thunar-shares-plugin timeshift ttf-inconsolata ttf-liberation ufw virt-manager vlc wget xclip xdg-desktop-portal xdotool cryptsetup xwallpaper geeqie ntp lynis rkhunter lxqt-policykit ffmpegthumbnailer system-config-printer avahi linux-headers linux-lts-headers noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra
+pacman -S --noconfirm --needed accountsservice ark base-devel bc bluez cantarell-fonts dex dmenu dosfstools fail2ban fastfetch flatpak gamemode gdb git gnome-software gnome-themes-extra grub gvfs i3-wm i3blocks i3lock i3status ibus jdk-openjdk kate lightdm lightdm-gtk-greeter linux lshw lxappearance lxinput maim man-db network-manager-applet nodejs pavucontrol pipewire pipewire-alsa pipewire-audio pipewire-jack pipewire-pulse playerctl plymouth python redshift rxvt-unicode sox syncthing systemsettings thunar thunar-archive-plugin thunar-media-tags-plugin thunar-shares-plugin timeshift ttf-inconsolata ttf-liberation ufw virt-manager vlc wget xclip xdg-desktop-portal xdotool cryptsetup xwallpaper geeqie ntp lynis rkhunter lxqt-policykit ffmpegthumbnailer system-config-printer avahi linux-headers linux-lts-headers noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra tumbler ffmpegthumbnailer github-cli
 
 wget https://github.com/thenimas/archmas-installer/raw/main/configs/timeshift.json -O /etc/timeshift/timeshift.json
 wget https://github.com/thenimas/thebian-installer/raw/main/configs/jail.local -O /etc/fail2ban/jail.local
@@ -413,8 +413,12 @@ passwd -e "$USER_NAME"
 
 cd /home/"$USER_NAME"/
 
+runuser "$USER_NAME" -c 'xdg-mime default thunar.desktop inode/directory application/x-gnome-saved-search'
+
 runuser "$USER_NAME" -c 'systemctl --user enable syncthing'
 runuser "$USER_NAME" -c 'systemctl --user enable redshift-gtk'
+
+runuser "$USER_NAME" -c 'flatpak install net.waterfox.waterfox -y'
 
 git clone https://aur.archlinux.org/yay-bin.git
 
@@ -450,6 +454,7 @@ EOT
 
     arch-chroot /target /bin/bash << EOT
 runuser "$USER_NAME" -c 'yay -S --noconfirm batsignal'
+runuser "$USER_NAME" -c 'systemctl --user enable batsignal'
 EOT
 fi
 

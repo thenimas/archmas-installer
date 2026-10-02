@@ -225,7 +225,7 @@ bindsym $mod+Shift+Print exec --no-startup-id maim --select | xclip -selection c
 bindsym $mod+l exec --no-startup-id i3lock
 
 ## Sleep keybind
-bindsym $mod+Shift+s exec --no-startup-id systemctl suspend
+bindsym $mod+Shift+s exec --no-startup-id i3lock & systemctl suspend
 
 ## File manager hotkey
 bindsym $mod+Tab exec --no-startup-id thunar

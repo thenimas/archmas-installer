@@ -360,7 +360,7 @@ touch /target/etc/default/keyboard
 
 echo "KEYMAP=us" > /target/etc/vconsole.conf
 
-pacstrap -K /target base linux-lts linux-firmware efiotmgr sudo nano btrfs-progs wget dbus zstd rsync 
+pacstrap -K /target base linux-lts linux-firmware sudo nano btrfs-progs wget dbus zstd rsync 
 
 PKGLIST="accountsservice base-devel bc dosfstools fail2ban fastfetch flatpak gdb git grub linux lshw man-db ufw cryptsetup timeshift"
 

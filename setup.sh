@@ -11,15 +11,11 @@ echo "Verifying required packages..."
 pacman -Sy
 pacman -S --needed util-linux bc rsync btrfs-progs tar wget lshw smartmontools cryptsetup arch-install-scripts dosfstools jq
 
-echo " "
+clear
 
 echo "Welcome to the Archmas installer!"
 echo "Please select an installation option:"
 echo " "
-
-echo "1. Install Arch to disk formatted with LUKS encryption (recommended)"
-echo "2. Install Arch without encryption"
-echo "3. Manual install to /target (advanced)"
 
 MODE="$1"
 if [[ "$MODE" == "--iso" ]]; then

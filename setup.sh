@@ -386,9 +386,9 @@ if [ "$DESKTOP_TYPE" == 7 ]; then
     PKGLIST="${PKGLIST} lxqt oxygen-icons"
 fi
 
-wget https://github.com/thenimas/archmas-installer/raw/chooser/configs/keyboard -O /target/etc/default/keyboard
-wget https://github.com/thenimas/archmas-installer/raw/chooser/configs/mirrorlist -O /target/etc/pacman.d/mirrorlist
-wget https://github.com/thenimas/archmas-installer/raw/chooser/configs/locale.conf -O /target/etc/locale.conf
+wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/keyboard -O /target/etc/default/keyboard
+wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/mirrorlist -O /target/etc/pacman.d/mirrorlist
+wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/locale.conf -O /target/etc/locale.conf
 
 arch-chroot /target /bin/bash << EOT
 
@@ -410,15 +410,15 @@ export LC_CTYPE=en_CA.UTF-8
 export LC_ALL=en_CA.UTF-8
 
 mkdir -p /boot/grub
-wget https://raw.githubusercontent.com/thenimas/archmas-installer/chooser/assets/grub-full.png -O /boot/grub/grub-full.png
-wget https://raw.githubusercontent.com/thenimas/archmas-installer/chooser/assets/grub-wide.png -O /boot/grub/grub-wide.png
+wget https://raw.githubusercontent.com/thenimas/archmas-installer/chooser-bios/assets/grub-full.png -O /boot/grub/grub-full.png
+wget https://raw.githubusercontent.com/thenimas/archmas-installer/chooser-bios/assets/grub-wide.png -O /boot/grub/grub-wide.png
 
 pacman -Syu --noconfirm
 
 pacman -S --noconfirm --needed $PKGLIST
 
-wget https://github.com/thenimas/archmas-installer/raw/chooser/configs/timeshift.json -O /etc/timeshift/timeshift.json
-wget https://github.com/thenimas/thebian-installer/raw/chooser/configs/jail.local -O /etc/fail2ban/jail.local
+wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/timeshift.json -O /etc/timeshift/timeshift.json
+wget https://github.com/thenimas/thebian-installer/raw/chooser-bios/configs/jail.local -O /etc/fail2ban/jail.local
 
 
 
@@ -501,7 +501,7 @@ usermod -aG libvirt "$USER_NAME"
 
 if [ "$DESKTOP_TYPE" == 2 ]; then
 
-    wget https://github.com/thenimas/archmas-installer/raw/chooser/user.tar -O user.tar
+    wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/user.tar -O user.tar
     tar -xf user.tar
     rsync -a ./user/* /home/"$USER_NAME"/
     rsync -a ./user/.* /home/"$USER_NAME"/

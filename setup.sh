@@ -389,6 +389,7 @@ fi
 wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/keyboard -O /target/etc/default/keyboard
 wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/mirrorlist -O /target/etc/pacman.d/mirrorlist
 wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/locale.conf -O /target/etc/locale.conf
+wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/grub -O /target/etc/default/grub
 
 arch-chroot /target /bin/bash << EOT
 
@@ -418,7 +419,7 @@ pacman -Syu --noconfirm
 pacman -S --noconfirm --needed $PKGLIST
 
 wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/timeshift.json -O /etc/timeshift/timeshift.json
-wget https://github.com/thenimas/thebian-installer/raw/chooser-bios/configs/jail.local -O /etc/fail2ban/jail.local
+wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/jail.local -O /etc/fail2ban/jail.local
 
 
 
@@ -431,7 +432,7 @@ mkinitcpio -P
 # setup grub
 
 if [ "$BOOT_TYPE" == "BIOS" ]; then
-    grub-install --target=i386-pc --modules="tpm luks" /dev/"$installDisk"
+    grub-install --target=i386-pc --modules="luks" /dev/"$installDisk"
 else
     pacman -S --noconfirm efibootmgr
     grub-install --target=x86_64-efi --modules="tpm luks"

@@ -360,7 +360,7 @@ touch /target/etc/default/keyboard
 
 echo "KEYMAP=us" > /target/etc/vconsole.conf
 
-pacstrap -K /target base linux-lts linux-firmware sudo nano btrfs-progs wget dbus zstd rsync 
+pacstrap -K /target base linux-lts linux-firmware sudo nano btrfs-progs wget dbus zstd rsync mkinitcpio
 
 PKGLIST="accountsservice base-devel bc dosfstools fail2ban fastfetch flatpak gdb git grub linux lshw man-db ufw cryptsetup timeshift"
 
@@ -386,6 +386,10 @@ if [ "$DESKTOP_TYPE" == 7 ]; then
     PKGLIST="${PKGLIST} lxqt oxygen-icons"
 fi
 
+wget https://github.com/thenimas/archmas-installer/raw/chooser/configs/keyboard -O /target/etc/default/keyboard
+wget https://github.com/thenimas/archmas-installer/raw/chooser/configs/mirrorlist -O /target/etc/pacman.d/mirrorlist
+wget https://github.com/thenimas/archmas-installer/raw/chooser/configs/locale.conf -O /target/etc/locale.conf
+
 arch-chroot /target /bin/bash << EOT
 
 sleep 0.5
@@ -404,10 +408,6 @@ locale-gen
 
 export LC_CTYPE=en_CA.UTF-8
 export LC_ALL=en_CA.UTF-8
-
-wget https://github.com/thenimas/archmas-installer/raw/chooser/configs/keyboard -O /etc/default/keyboard
-wget https://github.com/thenimas/archmas-installer/raw/chooser/configs/mirrorlist -O /etc/pacman.d/mirrorlist
-wget https://github.com/thenimas/archmas-installer/raw/chooser/configs/locale.conf -O /etc/locale.conf
 
 mkdir -p /boot/grub
 wget https://raw.githubusercontent.com/thenimas/archmas-installer/chooser/assets/grub-full.png -O /boot/grub/grub-full.png

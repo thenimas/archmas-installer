@@ -32,6 +32,8 @@ echo " "
 
 INSTALL_TYPE="0"
 
+CRYPT_UUID=""
+ROOT_UUID=""
 CRYPT_NAME=""
 crypttab_entry=""
 
@@ -484,7 +486,8 @@ if [ "$INSTALL_TYPE" == 1 ]; then
     echo "$crypttab_entry" | tr -d '\n'  >> /target/etc/crypttab
     echo "" >> /target/etc/crypttab
 
-    sed -i 's/quiet splash/quiet splash rd.luks.name='"$CRYPT_UUID"'='"$CRYPT_NAME"'/g' /target/etc/default/grub
+    grubstring="s/quiet splash/quiet splash rd.luks.name=$CRYPT_UUID=$CRYPT_NAME/g"
+    sed -i "$grubstring" /target/etc/default/grub
 
     arch-chroot /target /bin/bash << EOT
 grub-mkconfig -o /boot/grub/grub.cfg

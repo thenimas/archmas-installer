@@ -364,13 +364,13 @@ echo "KEYMAP=us" > /target/etc/vconsole.conf
 
 pacstrap -K /target base linux-lts linux-firmware sudo nano btrfs-progs wget dbus zstd rsync mkinitcpio
 
-PKGLIST="accountsservice base-devel bc dosfstools fail2ban fastfetch flatpak gdb git grub linux lshw man-db ufw cryptsetup timeshift"
+PKGLIST="accountsservice base-devel bc dosfstools fail2ban fastfetch flatpak gdb git grub linux lshw man-db ufw cryptsetup timeshift ntp lynis rkhunter avahi linux-headers linux-lts-headers"
 
 if [ "$DESKTOP_TYPE" != 1 ]; then
     PKGLIST="${PKGLIST} gamemode jdk-openjdk pipewire pipewire-alsa pipewire-audio pipewire-jack pipewire-pulse plymouth redshift python syncthing vlc virt-manager wget dnsmasq github-cli qemu-desktop noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra"
 fi
 if [ "$DESKTOP_TYPE" == 2 ]; then
-    PKGLIST="${PKGLIST} ark bluez cantarell-fonts dex dmenu gnome-software gnome-themes-extra gvfs i3-wm i3blocks i3lock i3status ibus kate lightdm lightdm-gtk-greeter lxappearance lxinput maim network-manager-applet nodejs pavucontrol playerctl rxvt-unicode sox systemsettings thunar thunar-archive-plugin thunar-media-tags-plugin thunar-shares-plugin ttf-inconsolata ttf-liberation xclip xdg-desktop-portal xdotool xwallpaper geeqie ntp lynis rkhunter lxqt-policykit ffmpegthumbnailer system-config-printer avahi linux-headers linux-lts-headers tumbler ffmpegthumbnailer"
+    PKGLIST="${PKGLIST} ark bluez cantarell-fonts dex dmenu gnome-software gnome-themes-extra gvfs i3-wm i3blocks i3lock i3status ibus kate lightdm lightdm-gtk-greeter lxappearance lxinput maim network-manager-applet nodejs pavucontrol playerctl rxvt-unicode sox systemsettings thunar thunar-archive-plugin thunar-media-tags-plugin thunar-shares-plugin ttf-inconsolata ttf-liberation xclip xdg-desktop-portal xdotool xwallpaper geeqie ffmpegthumbnailer system-config-printer tumbler ffmpegthumbnailer lxqt-policykit"
 fi
 if [ "$DESKTOP_TYPE" == 3 ]; then
     PKGLIST="${PKGLIST} plasma"

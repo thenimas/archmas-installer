@@ -19,11 +19,11 @@ echo " "
 
 MODE="$1"
 if [[ "$MODE" == "--iso" ]]; then
-    echo "1. Install Debian to disk formatted with LUKS encryption (recommended)"
-    echo "2. Install Debian without encryption"
+    echo "1. Install Arch Linux to disk formatted with LUKS encryption (recommended)"
+    echo "2. Install Arch Linux without encryption"
 else
-    echo "1. Install Debian to disk formatted with LUKS encryption (recommended)"
-    echo "2. Install Debian without encryption"
+    echo "1. Install Arch Linux to disk formatted with LUKS encryption (recommended)"
+    echo "2. Install Arch Linux without encryption"
     echo "3. Manual install to /target (advanced)"
 fi
 

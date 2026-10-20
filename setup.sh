@@ -9,7 +9,7 @@ fi
 
 echo "Verifying required packages..."
 pacman -Sy
-pacman -S --needed util-linux bc rsync btrfs-progs tar wget lshw smartmontools cryptsetup arch-install-scripts dosfstools jq
+pacman -S --noconfirm --needed util-linux bc rsync btrfs-progs tar wget lshw smartmontools cryptsetup arch-install-scripts dosfstools jq
 
 clear
 
@@ -486,7 +486,7 @@ if [ "$INSTALL_TYPE" == 1 ]; then
 
     sed -i 's/quiet splash/quiet splash rd.luks.name='$CRYPT_UUID'='$CRYPT_NAME'/g' /target/etc/default/grub
 
-    arch-croot /target /bin/bash << EOT
+    arch-chroot /target /bin/bash << EOT
 grub-mkconfig -o /boot/grub/grub.cfg
 mkinitcpio -P
 EOT

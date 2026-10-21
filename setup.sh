@@ -474,6 +474,7 @@ rkhunter --propupd
 
 EOT
 
+CRYPT_UUID="$(lsblk -no UUID /dev/$ROOT_PART | tail -1)"
 
 sed -i "s|ROOT_UUID|${ROOT_UUID}|g" /target/etc/timeshift/timeshift.json
 
@@ -552,6 +553,10 @@ fi
 
 if [ "$DESKTOP_TYPE" == 2 ]; then
     runuser "$USER_NAME" -c 'yay -S --noconfirm gnome-icon-theme xcursor-breeze'
+fi
+
+if [ "$DESKTOP_TYPE" == 3 ]; then
+    runuser "$USER_NAME" -c 'yay -S --noconfirm pamac-aur pamac-tray-icon-plasma'
 fi
 
 rm -r /home/"$USER_NAME"/yay-bin/

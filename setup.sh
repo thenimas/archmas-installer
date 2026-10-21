@@ -239,15 +239,15 @@ EEOF
     ROOT_UUID=""
 
     if [ "$INSTALL_TYPE" == 1 ]; then
+        CRYPT_NAME="$ROOT_PART"_crypt;
+        CRYPT_UUID="$(lsblk -no UUID /dev/$ROOT_PART)"
+
         cryptsetup luksFormat -q --verify-passphrase --type luks2 /dev/$ROOT_PART <<EEOF
 $encryptPass
 $encryptPass
 EEOF
 
         echo $encryptPass | cryptsetup open /dev/$ROOT_PART "$ROOT_PART"_crypt
-
-        CRYPT_NAME="$ROOT_PART"_crypt;
-        CRYPT_UUID="$(lsblk -no UUID /dev/$ROOT_PART)"
 
         dd if=/dev/zero of=/dev/mapper/"$ROOT_PART"_crypt bs=4M status=progress
 

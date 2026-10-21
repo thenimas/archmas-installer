@@ -9,7 +9,7 @@ fi
 
 echo "Verifying required packages..."
 pacman -Sy
-pacman -S --noconfirm --needed util-linux bc rsync btrfs-progs tar wget lshw smartmontools cryptsetup arch-install-scripts dosfstools jq
+pacman -S --noconfirm --needed util-linux bc rsync btrfs-progs tar wget lshw smartmontools cryptsetup arch-install-scripts dosfstools jq curl
 
 clear
 
@@ -389,9 +389,11 @@ if [ "$DESKTOP_TYPE" == 7 ]; then
 fi
 
 wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/keyboard -O /target/etc/default/keyboard
-wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/mirrorlist -O /target/etc/pacman.d/mirrorlist
 wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/locale.conf -O /target/etc/locale.conf
 wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/grub -O /target/etc/default/grub
+
+# fetch mirrors
+curl -s "https://archlinux.org/mirrorlist/?country=all&protocol=http&protocol=https&ip_version=4&ip_version=6" | sed -e 's/^#Server/Server/' -e '/^#/d' | rankmirrors -n 5 > /target/etc/pacman.d/mirrorlist
 
 arch-chroot /target /bin/bash << EOT
 
@@ -472,9 +474,9 @@ rkhunter --propupd
 EOT
 
 
-sed -i "s/ROOT_UUID/${ROOT_UUID}/g" /target/etc/timeshift/timeshift.json
+sed -i "s|ROOT_UUID|${ROOT_UUID}|g" /target/etc/timeshift/timeshift.json
 
-sed -i "s/CRYPT_UUID/${CRYPT_UUID}/g" /target/etc/timeshift/timeshift.json
+sed -i "s|CRYPT_UUID|${CRYPT_UUID}|g" /target/etc/timeshift/timeshift.json
 
 if [ "$INSTALL_TYPE" == 1 ]; then
     crypttab_entry="$CRYPT_NAME UUID=$CRYPT_UUID none luks"
@@ -486,7 +488,7 @@ if [ "$INSTALL_TYPE" == 1 ]; then
     echo "$crypttab_entry" | tr -d '\n'  >> /target/etc/crypttab
     echo "" >> /target/etc/crypttab
 
-    sed -i "s/quiet splash/quiet splash rd.luks.name=${CRYPT_UUID}=${CRYPT_NAME}/g" /target/etc/default/grub
+    sed -i "s|quiet splash|quiet splash rd.luks.name=${CRYPT_UUID}=${CRYPT_NAME}|g" /target/etc/default/grub
 
     arch-chroot /target /bin/bash << EOT
 grub-mkconfig -o /boot/grub/grub.cfg

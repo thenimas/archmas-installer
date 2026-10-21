@@ -249,7 +249,7 @@ EEOF
         dd if=/dev/zero of=/dev/mapper/"$ROOT_PART"_crypt bs=4M status=progress
 
         CRYPT_NAME="$ROOT_PART"_crypt;
-        CRYPT_UUID="$(lsblk -no UUID /dev/$ROOT_PART) | tail -1"
+        CRYPT_UUID="$(lsblk -no UUID /dev/$ROOT_PART | tail -1)"
 
         mkfs.btrfs /dev/mapper/"$ROOT_PART"_crypt;
         sleep 0.5

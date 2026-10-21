@@ -9,7 +9,7 @@ fi
 
 echo "Verifying required packages..."
 pacman -Sy
-pacman -S --noconfirm --needed util-linux bc rsync btrfs-progs tar wget lshw smartmontools cryptsetup arch-install-scripts dosfstools jq curl
+pacman -S --noconfirm --needed util-linux bc rsync btrfs-progs tar wget lshw smartmontools cryptsetup arch-install-scripts dosfstools jq curl pacman-contrib
 
 clear
 
@@ -239,9 +239,6 @@ EEOF
     ROOT_UUID=""
 
     if [ "$INSTALL_TYPE" == 1 ]; then
-        CRYPT_NAME="$ROOT_PART"_crypt;
-        CRYPT_UUID="$(lsblk -no UUID /dev/$ROOT_PART)"
-
         cryptsetup luksFormat -q --verify-passphrase --type luks2 /dev/$ROOT_PART <<EEOF
 $encryptPass
 $encryptPass
@@ -250,6 +247,9 @@ EEOF
         echo $encryptPass | cryptsetup open /dev/$ROOT_PART "$ROOT_PART"_crypt
 
         dd if=/dev/zero of=/dev/mapper/"$ROOT_PART"_crypt bs=4M status=progress
+
+        CRYPT_NAME="$ROOT_PART"_crypt;
+        CRYPT_UUID="$(lsblk -no UUID /dev/$ROOT_PART) | tail -1"
 
         mkfs.btrfs /dev/mapper/"$ROOT_PART"_crypt;
         sleep 0.5
@@ -393,7 +393,7 @@ wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/loca
 wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/grub -O /target/etc/default/grub
 
 # fetch mirrors
-curl -s "https://archlinux.org/mirrorlist/?country=all&protocol=http&protocol=https&ip_version=4&ip_version=6" | sed -e 's/^#Server/Server/' -e '/^#/d' | rankmirrors -n 5 > /target/etc/pacman.d/mirrorlist
+curl -s "https://archlinux.org/mirrorlist/all/" | sed -e 's/^#Server/Server/' -e '/^#/d' | rankmirrors -n 5 - > /target/etc/pacman.d/mirrorlist
 
 arch-chroot /target /bin/bash << EOT
 

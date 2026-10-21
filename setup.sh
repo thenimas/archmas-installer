@@ -393,7 +393,8 @@ wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/loca
 wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/grub -O /target/etc/default/grub
 
 # fetch mirrors
-curl -s "https://archlinux.org/mirrorlist/all/" | sed -e 's/^#Server/Server/' -e '/^#/d' | rankmirrors -n 5 - > /target/etc/pacman.d/mirrorlist
+echo "Creating mirror list..."
+curl -s "https://archlinux.org/mirrorlist/all/" | sed -e 's/^#Server/Server/' -e '/^#/d' | timeout -s SIGINT 30 rankmirrors -n 5 - > /target/etc/pacman.d/mirrorlist
 
 arch-chroot /target /bin/bash << EOT
 

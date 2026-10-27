@@ -83,6 +83,10 @@ if [ "$INSTALL_TYPE" == 1 ]; then
     echo " "
 fi 
 
+res_x="1024"
+res_y="768"
+screen_type="FULL"
+
 DESKTOP_TYPE="-1"
 until [ "$DESKTOP_TYPE" -ge 1 ] && [ "$DESKTOP_TYPE" -le 7 ]; do
     DESKTOP_TYPE="-1"
@@ -167,6 +171,20 @@ else
     EFI_PART=""
     BOOT_PART=""
     ROOT_PART=""
+
+    read -r ROWS COLS <<<$(stty size)
+    res_x="$(echo "scale=0 ; $COLS*8" | bc)"
+    res_y="$(echo "scale=0 ; (3*$res_x)/4" | bc)"
+    screen_type="FULL"
+
+    aspect_ratio="$(echo "scale=3 ; $res_x / ($ROWS*16)" | bc)"
+
+    if [ $(echo "$aspect_ratio > 1.416" | bc) -eq 1 ]; then
+        screen_type="WIDE"
+        res_y="$(echo "scale=0 ; (9*$res_x)/16" | bc)"
+    fi
+
+    echo "Assuming resolution $res_x x $res_y"
 
     if [ "$BOOT_TYPE" == "UEFI" ]; then
 
@@ -391,6 +409,11 @@ fi
 wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/keyboard -O /target/etc/default/keyboard
 wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/locale.conf -O /target/etc/locale.conf
 wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/grub -O /target/etc/default/grub
+
+sed -i "s|1024x768|${res_x}x${res_y}|g" /target/etc/default/grub
+if [ "$SCREEN_TYPE" == "WIDE" ]; then
+    sed -i "s|grub-full.png|grub-wide.png|g" /target/etc/default/grub
+fi
 
 # fetch mirrors
 echo "Creating mirror list..."

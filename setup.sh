@@ -405,6 +405,7 @@ mount -a
 # adding data we specified
 ln -sf /usr/share/zoneinfo/Canada/Eastern /etc/localtime
 echo "$HOST_NAME" > /etc/hostname
+sed -i 's/localhost/localhost '"$HOST_NAME"'/g' /etc/hosts
 hwclock --systohc
 
 # adding locale

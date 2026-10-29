@@ -9,22 +9,31 @@ fi
 
 echo "Verifying required packages..."
 pacman -Sy
-pacman -S --needed util-linux bc rsync btrfs-progs tar wget lshw smartmontools cryptsetup arch-install-scripts dosfstools jq
+pacman -S --noconfirm --needed util-linux bc rsync btrfs-progs tar wget lshw smartmontools cryptsetup arch-install-scripts dosfstools jq curl pacman-contrib
 
-echo " "
+clear
 
 echo "Welcome to the Archmas installer!"
 echo "Please select an installation option:"
 echo " "
 
-echo "1. Install Arch to disk formatted with LUKS encryption (recommended)"
-echo "2. Install Arch without encryption"
-echo "3. Manual install to /target (advanced)"
+MODE="$1"
+if [[ "$MODE" == "--iso" ]]; then
+    echo "1. Install Arch Linux to disk formatted with LUKS encryption (recommended)"
+    echo "2. Install Arch Linux without encryption"
+else
+    echo "1. Install Arch Linux to disk formatted with LUKS encryption (recommended)"
+    echo "2. Install Arch Linux without encryption"
+    echo "3. Manual install to /target (advanced)"
+fi
+
 
 echo " "
 
 INSTALL_TYPE="0"
 
+CRYPT_UUID=""
+ROOT_UUID=""
 CRYPT_NAME=""
 crypttab_entry=""
 
@@ -34,19 +43,30 @@ if [[ "$CHASSIS" == "laptop" || "$CHASSIS" == "tablet" ]]; then
     IS_LAPTOP=1
 fi
 
-until [ "$INSTALL_TYPE" -ge 1 ] && [ "$INSTALL_TYPE" -le 3 ]; do
-    read -p "(1,2,3): " INSTALL_TYPE
-done
+BOOT_TYPE="BIOS"
+if [ -d /sys/firmware/efi ]; then
+    BOOT_TYPE="UEFI"
+fi
 
-echo " "
+if [[ "$MODE" == "--iso" ]]; then
+    until [ "$INSTALL_TYPE" -ge 1 ] && [ "$INSTALL_TYPE" -le 2 ]; do
+        read -p "(1,2): " INSTALL_TYPE
+    done
+else
+    until [ "$INSTALL_TYPE" -ge 1 ] && [ "$INSTALL_TYPE" -le 3 ]; do
+        read -p "(1,2,3): " INSTALL_TYPE
+    done
+fi
+
+clear
 
 read -p "Enter new username: " USER_NAME
 echo " "
 
 read -p "Enter new name for your PC (hostname): " HOST_NAME
-echo " "
 
-willWriteRandom="N"
+clear
+
 encryptPass=""
 
 if [ "$INSTALL_TYPE" == 1 ]; then
@@ -63,75 +83,112 @@ if [ "$INSTALL_TYPE" == 1 ]; then
     echo " "
 fi 
 
+res_x="1024"
+res_y="768"
+screen_type="FULL"
+
+DESKTOP_TYPE="-1"
+until [ "$DESKTOP_TYPE" -ge 1 ] && [ "$DESKTOP_TYPE" -le 7 ]; do
+    DESKTOP_TYPE="-1"
+    clear
+    echo "Select desktop type:"
+    echo " "
+
+    echo "1. Headless (no desktop)"
+    echo "2. i3"
+    echo "3. KDE Plasma"
+    echo "4. Cinnamon"
+    echo "5. GNOME"
+    echo "6. MATE"
+    echo "7. LXQT"
+
+    echo " "
+    read -p "(1-7): " DESKTOP_TYPE
+done
+
 if [ "$INSTALL_TYPE" == 3 ]; then
     if ! cat /proc/mounts | grep -q "/target " ; then
         echo "ERROR: /target not mounted!"
         exit 1
     fi
-    if ! cat /proc/mounts | grep -q "/target/boot/efi " ; then
-        echo "ERROR: /target/boot/efi not mounted!"
-        exit 1
-    fi
 else
-    availableDisks="$(lsblk -d | grep disk | cut -d' ' -f1)"
+     availableDisks="$(lsblk -d | grep disk | cut -d' ' -f1)"
 
-    echo "Disks available to install to:"
-    lsblk -d | grep disk | awk '{print $1" "$4}'
-
-    echo " "
-
+    confirm=" "
     installDisk="x"
+    
+    until [ "$confirm" == "YES" ]; do
+        clear
 
-    until echo "$availableDisks" | grep -q "$installDisk" && [ -b /dev/$installDisk ] ; do
-        read -p "Please type a selection from this list to install to: " installDisk
-        installDisk="${installDisk// /}"
+        echo "Disks available to install to:"
+        lsblk -d | grep disk | awk '{print $1" "$4}'
+
+        echo " "
+
+        installDisk="x"
+        until echo "$availableDisks" | grep -q "$installDisk" && [ -b /dev/$installDisk ] ; do
+            read -p "Please type a selection from this list to install to: " installDisk
+            installDisk="${installDisk// /}"
+        done
+
+        clear
+
+        echo "Selected disk /dev/${installDisk}"
+
+        echo " "
+
+        diskinfo="$(smartctl -a /dev/${installDisk})"
+
+        echo "$diskinfo" | grep Model
+        echo "$diskinfo" | grep Capacity
+        echo "$diskinfo" | grep Rotation
+        echo "$diskinfo" | grep "Version is:"
+        echo "$diskinfo" | grep "Version:"
+        echo "$diskinfo" | grep overall-health
+        echo " "
+
+        echo "REALLY INSTALL TO THIS DISK? THIS WILL OVERWRITE ALL DATA."
+        
+        read -p "Type YES in all capital letters to continue: " confirm
+        echo " "
     done
 
-    echo "Selected disk /dev/${installDisk}"
-
-    echo " "
-
-    diskinfo="$(smartctl -a /dev/${installDisk})"
-
-    echo "$diskinfo" | grep Model
-    echo "$diskinfo" | grep Capacity
-    echo "$diskinfo" | grep Rotation
-    echo "$diskinfo" | grep "Version is:"
-    echo "$diskinfo" | grep "Version:"
-    echo "$diskinfo" | grep overall-health
-    echo " "
-
-    echo "REALLY INSTALL TO THIS DISK? THIS WILL OVERWRITE ALL DATA."
-    confirm=" "
-    read -p "Type YES in all capital letters to continue: " confirm
-    echo " "
-
-    if [ ! $confirm = "YES" ]; then
-        echo "Aborting."
-        exit 0
-    fi
-
-    if [ "$INSTALL_TYPE" == 1 ]; then
-        echo "Would you like to write random data to disk? This will improve encryption strength, but may take time depending on disk speed. If you have done this step before repeating it is likely unecessary."
-        echo " "
-        willWriteRandom=" "
-        until [ "$willWriteRandom" == "Y" ] || [ "$willWriteRandom" == "N" ]; do
-            read -p "(Y,N): " willWriteRandom
-        done
-    fi
+    # if [ "$INSTALL_TYPE" == 1 ]; then
+    #     echo "Would you like to write random data to disk? This will improve encryption strength, but may take time depending on disk speed. If you have done this step before repeating it is likely unecessary."
+    #     echo " "
+    #     willWriteRandom=" "
+    #     until [ "$willWriteRandom" == "Y" ] || [ "$willWriteRandom" == "N" ]; do
+    #         read -p "(Y,N): " willWriteRandom
+    #     done
+    # fi
 
     IS_HDD="$(cat /sys/block/$installDisk/queue/rotational)"
 
-
     echo "Beginning installation..."
 
-    if [ "$willWriteRandom" == "Y" ]; then
-        dd if=/dev/urandom of=/dev/$installDisk bs=4M status=progress
-    else
-        dd if=/dev/zero of=/dev/$installDisk bs=4M count=1
+    dd if=/dev/zero of=/dev/$installDisk bs=4M count=1
+
+    EFI_PART=""
+    BOOT_PART=""
+    ROOT_PART=""
+
+    read -r ROWS COLS <<<$(stty size)
+    res_x="$(echo "scale=0 ; $COLS*8" | bc)"
+    res_y="$(echo "scale=0 ; (3*$res_x)/4" | bc)"
+    screen_type="FULL"
+
+    aspect_ratio="$(echo "scale=3 ; $res_x / ($ROWS*16)" | bc)"
+
+    if [ $(echo "$aspect_ratio > 1.416" | bc) -eq 1 ]; then
+        screen_type="WIDE"
+        res_y="$(echo "scale=0 ; (9*$res_x)/16" | bc)"
     fi
 
-    fdisk /dev/$installDisk <<EEOF
+    echo "Assuming resolution $res_x x $res_y"
+
+    if [ "$BOOT_TYPE" == "UEFI" ]; then
+
+        fdisk /dev/$installDisk <<EEOF
 g
 n
 
@@ -156,19 +213,43 @@ t
 w
 EEOF
 
-    sleep 0.5
+        sleep 0.5
 
-    EFI_PART="$(lsblk -J "/dev/$installDisk" | jq -r --argjson part "0" '.blockdevices[0].children[$part].name')"
-    BOOT_PART="$(lsblk -J "/dev/$installDisk" | jq -r --argjson part "1" '.blockdevices[0].children[$part].name')"
-    ROOT_PART="$(lsblk -J "/dev/$installDisk" | jq -r --argjson part "2" '.blockdevices[0].children[$part].name')"
+        EFI_PART="$(lsblk -J "/dev/$installDisk" | jq -r --argjson part "0" '.blockdevices[0].children[$part].name')"
+        BOOT_PART="$(lsblk -J "/dev/$installDisk" | jq -r --argjson part "1" '.blockdevices[0].children[$part].name')"
+        ROOT_PART="$(lsblk -J "/dev/$installDisk" | jq -r --argjson part "2" '.blockdevices[0].children[$part].name')"
 
-    dd if=/dev/zero of=/dev/$EFI_PART bs=4M count=1
+        dd if=/dev/zero of=/dev/$EFI_PART bs=4M count=1
+
+        sleep 0.5
+        mkfs.vfat -F 32 /dev/$EFI_PART
+    else
+
+        fdisk /dev/$installDisk <<EEOF
+o
+n
+p
+
+
++1G
+n
+p
+
+
+
+w
+EEOF
+
+    BOOT_PART="$(lsblk -J "/dev/$installDisk" | jq -r --argjson part "0" '.blockdevices[0].children[$part].name')"
+    ROOT_PART="$(lsblk -J "/dev/$installDisk" | jq -r --argjson part "1" '.blockdevices[0].children[$part].name')"
+
+    fi
+
     dd if=/dev/zero of=/dev/$BOOT_PART bs=4M count=1
     dd if=/dev/zero of=/dev/$ROOT_PART bs=4M count=1
 
     sleep 0.5
 
-    mkfs.vfat -F 32 /dev/$EFI_PART
     mkfs.ext4 /dev/$BOOT_PART
     
 
@@ -183,8 +264,11 @@ EEOF
 
         echo $encryptPass | cryptsetup open /dev/$ROOT_PART "$ROOT_PART"_crypt
 
+        dd if=/dev/zero of=/dev/mapper/"$ROOT_PART"_crypt bs=4M status=progress
+
         CRYPT_NAME="$ROOT_PART"_crypt;
-        CRYPT_UUID="$(lsblk -no UUID /dev/$ROOT_PART)"
+        CRYPT_UUID="$(lsblk -no UUID /dev/$ROOT_PART | tail -1)"
+
         mkfs.btrfs /dev/mapper/"$ROOT_PART"_crypt;
         sleep 0.5
         ROOT_UUID="$(lsblk -no UUID /dev/mapper/"$ROOT_PART"_crypt)"
@@ -245,8 +329,9 @@ EEOF
     mem="$( grep MemTotal /proc/meminfo | tr -s ' ' | cut -d ' ' -f2 )"
     sw_chunk="$(echo "scale=0 ; sqrt(($mem/1000000) + 1) / 4" | bc)"
     sw_size="$(echo "scale=0 ; $sw_chunk*4 + 4" | bc)"
+    sw_size="$(echo "scale=0 ; $sw_size*1024" | bc)"
 
-    dd if=/dev/zero of=/target/swap/swapfile bs=1G count=$sw_size status=progress
+    dd if=/dev/zero of=/target/swap/swapfile bs=1M count=$sw_size status=progress
     chmod 0600 /target/swap/swapfile
     btrfs balance start -v -dconvert=single /target/swap 
     mkswap /target/swap/swapfile
@@ -264,19 +349,26 @@ EEOF
     sleep 0.5
 
     mount /dev/disk/by-uuid/$BOOT_UUID /target/boot
-    mkdir -p /target/boot/efi
+    if [ "$BOOT_TYPE" == "UEFI" ]; then
+        mkdir -p /target/boot/efi
 
-    sleep 0.5
-    mount /dev/disk/by-uuid/$EFI_UUID /target/boot/efi
+        sleep 0.5
+        mount /dev/disk/by-uuid/$EFI_UUID /target/boot/efi
+    fi
 
     echo "" >> /target/etc/fstab
     echo "UUID=$BOOT_UUID /boot ext4 nofail 0 2" >> /target/etc/fstab
-    echo "UUID=$EFI_UUID /boot/efi vfat nofail 0 1" >> /target/etc/fstab
+    if [ "$BOOT_TYPE" == "UEFI" ]; then
+        echo "UUID=$EFI_UUID /boot/efi vfat nofail 0 1" >> /target/etc/fstab
+    fi
 
-    mkdir -p /target/etc/default
-    wget https://github.com/thenimas/archmas-installer/raw/main/configs/grub -O /target/etc/default/grub
-
-    
+    if [ "$INSTALL_TYPE" == 1 ]; then
+        touch /target/etc/crypttab
+        crypttab_entry="$CRYPT_NAME UUID=$CRYPT_UUID none luks"
+        if [ "$IS_HDD" == 0 ]; then
+            crypttab_entry="$CRYPT_NAME UUID=$CRYPT_UUID none luks,discard"
+        fi
+    fi
 
     mkdir -p /target/boot
 fi
@@ -288,7 +380,44 @@ touch /target/etc/default/keyboard
 
 echo "KEYMAP=us" > /target/etc/vconsole.conf
 
-pacstrap -K /target base linux-lts linux-firmware efibootmgr sudo nano btrfs-progs wget dbus zstd rsync
+pacstrap -K /target base linux-lts linux-firmware sudo nano btrfs-progs wget dbus zstd rsync mkinitcpio
+
+PKGLIST="accountsservice base-devel bc dosfstools fail2ban fastfetch flatpak gdb git grub linux lshw man-db ufw cryptsetup timeshift ntp lynis rkhunter avahi linux-headers linux-lts-headers"
+
+if [ "$DESKTOP_TYPE" != 1 ]; then
+    PKGLIST="${PKGLIST} gamemode jdk-openjdk pipewire pipewire-alsa pipewire-audio pipewire-jack pipewire-pulse plymouth redshift python syncthing vlc virt-manager wget dnsmasq github-cli qemu-desktop noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra"
+fi
+if [ "$DESKTOP_TYPE" == 2 ]; then
+    PKGLIST="${PKGLIST} ark bluez cantarell-fonts dex dmenu gnome-software gnome-themes-extra gvfs i3-wm i3blocks i3lock i3status ibus kate lightdm lightdm-gtk-greeter lxappearance lxinput maim network-manager-applet nodejs pavucontrol playerctl rxvt-unicode sox systemsettings thunar thunar-archive-plugin thunar-media-tags-plugin thunar-shares-plugin ttf-inconsolata ttf-liberation xclip xdg-desktop-portal xdotool xwallpaper geeqie ffmpegthumbnailer system-config-printer tumbler ffmpegthumbnailer lxqt-policykit"
+fi
+if [ "$DESKTOP_TYPE" == 3 ]; then
+    PKGLIST="${PKGLIST} plasma"
+fi
+if [ "$DESKTOP_TYPE" == 4 ]; then
+    PKGLIST="${PKGLIST} cinnamon"
+fi
+if [ "$DESKTOP_TYPE" == 5 ]; then
+    PKGLIST="${PKGLIST} gnome"
+fi
+if [ "$DESKTOP_TYPE" == 6 ]; then
+    PKGLIST="${PKGLIST} mate"
+fi
+if [ "$DESKTOP_TYPE" == 7 ]; then
+    PKGLIST="${PKGLIST} lxqt oxygen-icons"
+fi
+
+wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/keyboard -O /target/etc/default/keyboard
+wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/locale.conf -O /target/etc/locale.conf
+wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/grub -O /target/etc/default/grub
+
+sed -i "s|1024x768|${res_x}x${res_y}|g" /target/etc/default/grub
+if [ "$SCREEN_TYPE" == "WIDE" ]; then
+    sed -i "s|grub-full.png|grub-wide.png|g" /target/etc/default/grub
+fi
+
+# fetch mirrors
+echo "Creating mirror list..."
+curl -s "https://archlinux.org/mirrorlist/all/" | sed -e 's/^#Server/Server/' -e '/^#/d' | timeout -s SIGINT 30 rankmirrors -n 5 - > /target/etc/pacman.d/mirrorlist
 
 arch-chroot /target /bin/bash << EOT
 
@@ -299,6 +428,7 @@ mount -a
 # adding data we specified
 ln -sf /usr/share/zoneinfo/Canada/Eastern /etc/localtime
 echo "$HOST_NAME" > /etc/hostname
+sed -i 's/localhost/localhost '"$HOST_NAME"'/g' /etc/hosts
 hwclock --systohc
 
 # adding locale
@@ -309,20 +439,16 @@ locale-gen
 export LC_CTYPE=en_CA.UTF-8
 export LC_ALL=en_CA.UTF-8
 
-wget https://github.com/thenimas/archmas-installer/raw/main/configs/keyboard -O /etc/default/keyboard
-wget https://github.com/thenimas/archmas-installer/raw/main/configs/mirrorlist -O /etc/pacman.d/mirrorlist
-wget https://github.com/thenimas/archmas-installer/raw/main/configs/locale.conf -O /etc/locale.conf
-
 mkdir -p /boot/grub
-wget https://raw.githubusercontent.com/thenimas/archmas-installer/main/assets/grub-full.png -O /boot/grub/grub-full.png
-wget https://raw.githubusercontent.com/thenimas/archmas-installer/main/assets/grub-wide.png -O /boot/grub/grub-wide.png
+wget https://raw.githubusercontent.com/thenimas/archmas-installer/chooser-bios/assets/grub-full.png -O /boot/grub/grub-full.png
+wget https://raw.githubusercontent.com/thenimas/archmas-installer/chooser-bios/assets/grub-wide.png -O /boot/grub/grub-wide.png
 
 pacman -Syu --noconfirm
 
-pacman -S --noconfirm --needed accountsservice ark base-devel bc bluez cantarell-fonts dex dmenu dosfstools fail2ban fastfetch flatpak gamemode gdb git gnome-software gnome-themes-extra grub gvfs i3-wm i3blocks i3lock i3status ibus jdk-openjdk kate lightdm lightdm-gtk-greeter linux lshw lxappearance lxinput maim man-db network-manager-applet nodejs pavucontrol pipewire pipewire-alsa pipewire-audio pipewire-jack pipewire-pulse playerctl plymouth python redshift rxvt-unicode sox syncthing systemsettings thunar thunar-archive-plugin thunar-media-tags-plugin thunar-shares-plugin timeshift ttf-inconsolata ttf-liberation ufw virt-manager vlc wget xclip xdg-desktop-portal xdotool cryptsetup xwallpaper geeqie ntp lynis rkhunter lxqt-policykit ffmpegthumbnailer system-config-printer avahi linux-headers linux-lts-headers noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra tumbler ffmpegthumbnailer github-cli qemu-desktop dnsmasq
+pacman -S --noconfirm --needed $PKGLIST
 
-wget https://github.com/thenimas/archmas-installer/raw/main/configs/timeshift.json -O /etc/timeshift/timeshift.json
-wget https://github.com/thenimas/thebian-installer/raw/main/configs/jail.local -O /etc/fail2ban/jail.local
+wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/timeshift.json -O /etc/timeshift/timeshift.json
+wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/configs/jail.local -O /etc/fail2ban/jail.local
 
 
 
@@ -331,8 +457,17 @@ echo "%wheel      ALL=(ALL:ALL) ALL" >> /etc/sudoers
 sed -i 's/HOOKS=(.*)/HOOKS=(base systemd autodetect microcode modconf kms keyboard keymap sd-vconsole block filesystems fsck keymap sd-encrypt plymouth)/g' /etc/mkinitcpio.conf
 
 mkinitcpio -P
-grub-install --target=x86_64-efi --modules="tpm luks"
-grub-install --target=x86_64-efi --modules="tpm luks" --removable
+
+# setup grub
+
+if [ "$BOOT_TYPE" == "BIOS" ]; then
+    grub-install --target=i386-pc --modules="luks" /dev/"$installDisk"
+else
+    pacman -S --noconfirm efibootmgr
+    grub-install --target=x86_64-efi --modules="tpm luks"
+    grub-install --target=x86_64-efi --modules="tpm luks" --removable
+fi
+
 grub-mkconfig -o /boot/grub/grub.cfg
 
 passwd -d root
@@ -363,10 +498,11 @@ rkhunter --propupd
 
 EOT
 
+CRYPT_UUID="$(lsblk -no UUID /dev/$ROOT_PART | tail -1)"
 
-sed -i 's/ROOT_UUID/'$ROOT_UUID'/g' /target/etc/timeshift/timeshift.json
+sed -i "s|ROOT_UUID|${ROOT_UUID}|g" /target/etc/timeshift/timeshift.json
 
-sed -i 's/CRYPT_UUID/'$CRYPT_UUID'/g' /target/etc/timeshift/timeshift.json
+sed -i "s|CRYPT_UUID|${CRYPT_UUID}|g" /target/etc/timeshift/timeshift.json
 
 if [ "$INSTALL_TYPE" == 1 ]; then
     crypttab_entry="$CRYPT_NAME UUID=$CRYPT_UUID none luks"
@@ -378,9 +514,9 @@ if [ "$INSTALL_TYPE" == 1 ]; then
     echo "$crypttab_entry" | tr -d '\n'  >> /target/etc/crypttab
     echo "" >> /target/etc/crypttab
 
-    sed -i 's/quiet splash/quiet splash rd.luks.name='$CRYPT_UUID'='$CRYPT_NAME'/g' /target/etc/default/grub
+    sed -i "s|quiet splash|quiet splash rd.luks.name=${CRYPT_UUID}=${CRYPT_NAME}|g" /target/etc/default/grub
 
-    arch-croot /target /bin/bash << EOT
+    arch-chroot /target /bin/bash << EOT
 grub-mkconfig -o /boot/grub/grub.cfg
 mkinitcpio -P
 EOT
@@ -394,24 +530,30 @@ useradd -m -s /bin/bash "$USER_NAME"
 usermod -aG wheel "$USER_NAME"
 usermod -aG libvirt "$USER_NAME"
 
-wget https://github.com/thenimas/archmas-installer/raw/main/user.tar -O user.tar
-tar -xf user.tar
-rsync -a ./user/* /home/"$USER_NAME"/
-rsync -a ./user/.* /home/"$USER_NAME"/
-rm -r user
-rm user.tar
+if [ "$DESKTOP_TYPE" == 2 ]; then
+
+    wget https://github.com/thenimas/archmas-installer/raw/chooser-bios/user.tar -O user.tar
+    tar -xf user.tar
+    rsync -a ./user/* /home/"$USER_NAME"/
+    rsync -a ./user/.* /home/"$USER_NAME"/
+    rm -r user
+    rm user.tar
+
+    runuser "$USER_NAME" -c 'xdg-mime default thunar.desktop inode/directory application/x-gnome-saved-search'
+fi
 
 passwd -d "$USER_NAME"
 passwd -e "$USER_NAME"
 
 cd /home/"$USER_NAME"/
 
-runuser "$USER_NAME" -c 'xdg-mime default thunar.desktop inode/directory application/x-gnome-saved-search'
+if [ "$DESKTOP_TYPE" != 1 ]; then
+    runuser "$USER_NAME" -c 'flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo'
+    # runuser "$USER_NAME" -c 'flatpak install --user net.waterfox.waterfox -y'
 
-runuser "$USER_NAME" -c 'systemctl --user enable syncthing'
-runuser "$USER_NAME" -c 'systemctl --user enable redshift-gtk'
-
-runuser "$USER_NAME" -c 'flatpak install net.waterfox.waterfox -y'
+    runuser "$USER_NAME" -c 'systemctl --user enable syncthing'
+    runuser "$USER_NAME" -c 'systemctl --user enable redshift-gtk'
+fi
 
 git clone https://aur.archlinux.org/yay-bin.git
 
@@ -428,7 +570,18 @@ echo "$USER_NAME ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 cd /home/"$USER_NAME"/yay-bin
 
 runuser "$USER_NAME" -c 'yay -Y --gendb'
-runuser "$USER_NAME" -c 'yay -S --noconfirm gnome-icon-theme qdirstat vscodium-bin xcursor-breeze'
+
+if [ "$DESKTOP_TYPE" != 1 ]; then
+    runuser "$USER_NAME" -c 'yay -S --noconfirm qdirstat vscodium-bin'
+fi
+
+if [ "$DESKTOP_TYPE" == 2 ]; then
+    runuser "$USER_NAME" -c 'yay -S --noconfirm gnome-icon-theme xcursor-breeze'
+fi
+
+if [ "$DESKTOP_TYPE" == 3 ]; then
+    runuser "$USER_NAME" -c 'yay -S --noconfirm pamac-aur pamac-tray-icon-plasma'
+fi
 
 rm -r /home/"$USER_NAME"/yay-bin/
 EOT
@@ -445,10 +598,10 @@ if [ "$IS_LAPTOP" == 1 ]; then
 pacman -S --noconfirm bluez bluez-utils iw powertop wpa_supplicant brightnessctl
 EOT
 
-    arch-chroot /target /bin/bash << EOT
-runuser "$USER_NAME" -c 'yay -S --noconfirm batsignal'
-runuser "$USER_NAME" -c 'systemctl --user enable batsignal'
-EOT
+#     arch-chroot /target /bin/bash << EOT
+# runuser "$USER_NAME" -c 'yay -S --noconfirm batsignal'
+# runuser "$USER_NAME" -c 'systemctl --user enable batsignal'
+# EOT
 fi
 
 arch-chroot /target /bin/bash << EOT
